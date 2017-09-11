@@ -1,2 +1,2 @@
 # CSE4006
-Software Engineering @ @ cs.hanyang
+Software Engineering @ cs.hanyang
