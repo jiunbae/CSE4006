@@ -8,8 +8,8 @@
   
   <property name="compiler.args.lab01" value="-encoding UTF-8 -source 1.8 -target 1.8 ${compiler.args}"/>
   
-  <property name="lab01.output.dir" value="${module.lab01.basedir}/out/production/Lab01"/>
-  <property name="lab01.testoutput.dir" value="${module.lab01.basedir}/out/test/Lab01"/>
+  <property name="lab01.output.dir" value="${module.lab01.basedir}/out"/>
+  <property name="lab01.testoutput.dir" value="${module.lab01.basedir}/out"/>
   
   <path id="lab01.module.bootclasspath">
     <!-- Paths to be included in compilation bootclasspath -->
@@ -17,20 +17,27 @@
   
   <path id="lab01.module.production.classpath">
     <path refid="${module.jdk.classpath.lab01}"/>
+    <path refid="library.lab01.classpath"/>
   </path>
   
   <path id="lab01.runtime.production.module.classpath">
     <pathelement location="${lab01.output.dir}"/>
+    <path refid="library.lab01.classpath"/>
   </path>
   
   <path id="lab01.module.classpath">
     <path refid="${module.jdk.classpath.lab01}"/>
     <pathelement location="${lab01.output.dir}"/>
+    <path refid="library.lab01.classpath"/>
+    <pathelement location="${idea.home}/lib/hamcrest-core-1.3.jar"/>
+    <pathelement location="${idea.home}/lib/junit-4.12.jar"/>
   </path>
   
   <path id="lab01.runtime.module.classpath">
-    <pathelement location="${lab01.testoutput.dir}"/>
     <pathelement location="${lab01.output.dir}"/>
+    <path refid="library.lab01.classpath"/>
+    <pathelement location="${idea.home}/lib/hamcrest-core-1.3.jar"/>
+    <pathelement location="${idea.home}/lib/junit-4.12.jar"/>
   </path>
   
   
@@ -45,6 +52,12 @@
   <path id="lab01.module.sourcepath">
     <dirset dir="${module.lab01.basedir}">
       <include name="src"/>
+    </dirset>
+  </path>
+  
+  <path id="lab01.module.test.sourcepath">
+    <dirset dir="${module.lab01.basedir}">
+      <include name="test"/>
     </dirset>
   </path>
   
@@ -69,7 +82,23 @@
     </copy>
   </target>
   
-  <target name="compile.module.lab01.tests" depends="register.custom.compilers,compile.module.lab01.production" description="compile module Lab01; test classes" unless="skip.tests"/>
+  <target name="compile.module.lab01.tests" depends="register.custom.compilers,compile.module.lab01.production" description="compile module Lab01; test classes" unless="skip.tests">
+    <mkdir dir="${lab01.testoutput.dir}"/>
+    <javac2 destdir="${lab01.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.lab01}/javac">
+      <compilerarg line="${compiler.args.lab01}"/>
+      <bootclasspath refid="lab01.module.bootclasspath"/>
+      <classpath refid="lab01.module.classpath"/>
+      <src refid="lab01.module.test.sourcepath"/>
+      <patternset refid="excluded.from.compilation.lab01"/>
+    </javac2>
+    
+    <copy todir="${lab01.testoutput.dir}">
+      <fileset dir="${module.lab01.basedir}/test">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
   
   <target name="clean.module.lab01" description="cleanup module">
     <delete dir="${lab01.output.dir}"/>

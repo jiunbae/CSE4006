@@ -9,13 +9,12 @@ public class QueueTest {
 
     @Test
     public void fromArrayTest() throws Exception {
-        q = new Queue<>(new Integer[] {1, 2, 3, 4 ,5});
+        Integer array[] = new Integer[] {1, 2, 3, 4 ,5};
+        q = new Queue<>(array);
 
-        assertEquals(1, (int) q.pop());
-        assertEquals(2, (int) q.pop());
-        assertEquals(3, (int) q.pop());
-        assertEquals(4, (int) q.pop());
-        assertEquals(5, (int) q.pop());
+        for (Integer e : array) {
+            assertEquals((int) e, (int) q.pop());
+        }
     }
 
     @Test
@@ -43,20 +42,23 @@ public class QueueTest {
         assertEquals(1, q.getSize());
         q.add(3);
         assertEquals(2, q.getSize());
+
+        assertEquals(2, (int) q.pop());
+        assertEquals(3, (int) q.pop());
     }
 
     @Test
     public void popTest() throws Exception {
+        Integer array[] = new Integer[] {1, 2, 3, 4 ,5};
         q = new Queue<>();
-        for (int e : new int[] {1, 2, 3, 4, 5}) {
+
+        for (int e : array) {
             q.add(e);
         }
 
-        assertEquals(1, (int) q.pop());
-        assertEquals(2, (int) q.pop());
-        assertEquals(3, (int) q.pop());
-        assertEquals(4, (int) q.pop());
-        assertEquals(5, (int) q.pop());
+        for (Integer e : array) {
+            assertEquals((int) e, (int) q.pop());
+        }
     }
 
 }

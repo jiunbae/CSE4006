@@ -1,7 +1,7 @@
 package cse4006.utility;
 
 public class Queue<T> {
-    private static final int DEFAULT_SIZE = 16; // use *static* cause using in constructor.
+    //private static final int DEFAULT_SIZE = 16; // use *static* cause using in constructor.
     public int cap = 0;
     private int front = 0;
     private int rear = 0;
@@ -9,7 +9,7 @@ public class Queue<T> {
     private T[] elements = null;
 
     public Queue() {
-        this(DEFAULT_SIZE);
+        this(16);                           //@Improving: use *static* keyword if there is no constraint
     }
 
     public Queue(int cap) {

@@ -2,10 +2,10 @@
 <project name="lab01" default="all">
   
   
-  <property file="lab01.properties"/>
+  <property file="build.properties"/>
   <!-- Uncomment the following property if no tests compilation is needed -->
   <!-- 
-  <property getName="skip.tests" value="true"/>
+  <property name="skip.tests" value="true"/>
    -->
   
   <!-- Compiler options -->
@@ -87,6 +87,13 @@
   <property name="project.jdk.home" value="${jdk.home.1.8}"/>
   <property name="project.jdk.bin" value="${jdk.bin.1.8}"/>
   <property name="project.jdk.classpath" value="jdk.classpath.1.8"/>
+  
+  
+  <!-- Project Libraries -->
+  
+  <path id="library.lab01.classpath">
+    <pathelement location="${basedir}"/>
+  </path>
   <!-- Register Custom Compiler Taskdefs -->
   <property name="javac2.home" value="${idea.home}/lib"/>
   <path id="javac2.classpath">
@@ -103,14 +110,33 @@
   <!-- Modules -->
   
   <import file="${basedir}/module_lab01.xml"/>
-  
+
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+
   <target name="init" description="Build initialization">
     <!-- Perform any build initialization in this target -->
+    <tstamp/>
+    <mkdir dir="${build}"/>
   </target>
-  
+
+  <target name="compile" depends="init"
+          description="compile the source">
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}" destdir="${build}" includeantruntime="false"/>
+  </target>
+
+  <target name="jar" depends="compile">
+    <jar destfile="${basedir}/hw0.jar" basedir="${build}">
+      <manifest>
+        <attribute name="Main-Class" value="cse4006.main.Main"/>
+      </manifest>
+    </jar>
+  </target>
+
   <target name="clean" depends="clean.module.lab01" description="cleanup all"/>
   
   <target name="build.modules" depends="init, clean, compile.module.lab01" description="build all modules"/>
-  
-  <target name="all" depends="build.modules" description="build all"/>
+
+  <target name="all" depends="build.modules, jar" description="build all"/>
 </project>

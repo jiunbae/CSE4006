@@ -3,6 +3,10 @@ package cse4006;
 public class Person {
     private String name;
 
+    /**
+     * @param size: string length
+     * @return random string
+     */
     public String nextName(int size) { //@Improving: use *static* keyword if there is no constraint
         final String upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         final String lower = upper.toLowerCase();
@@ -15,6 +19,10 @@ public class Person {
         return name;
     }
 
+    /**
+     * recall nextName(4~12)
+     * @return random string(length: 4 ~ 12)
+     */
     public String nextName() { //@Improving: use *static* keyword if there is no constraint
         return nextName((int) (Math.random() * 8) + 4);
     }
@@ -31,6 +39,10 @@ public class Person {
         return name;
     }
 
+    /**
+     * @param obj: comparison
+     * @return if obj is same class and have same name
+     */
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
