@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_hw0" default="compile.module.hw0">
+  <dirname property="module.hw0.basedir" file="${ant.file.module_hw0}"/>
+
+  <property name="module.jdk.home.hw0" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.hw0" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.hw0" value="${project.jdk.classpath}"/>
+
+  <property name="compiler.args.hw0" value="-encoding UTF-8 -source 1.8 -target 1.8 ${compiler.args}"/>
+
+  <property name="hw0.output.dir" value="${module.hw0.basedir}/out"/>
+  <property name="hw0.testoutput.dir" value="${module.hw0.basedir}/out"/>
+
+  <path id="hw0.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+
+  <path id="hw0.module.production.classpath">
+    <path refid="${module.jdk.classpath.hw0}"/>
+    <path refid="library.hw0.classpath"/>
+  </path>
+
+  <path id="hw0.runtime.production.module.classpath">
+    <pathelement location="${hw0.output.dir}"/>
+    <path refid="library.hw0.classpath"/>
+  </path>
+
+  <path id="hw0.module.classpath">
+    <path refid="${module.jdk.classpath.hw0}"/>
+    <pathelement location="${hw0.output.dir}"/>
+    <path refid="library.hw0.classpath"/>
+    <pathelement location="${idea.home}/lib/hamcrest-core-1.3.jar"/>
+    <pathelement location="${idea.home}/lib/junit-4.12.jar"/>
+  </path>
+
+  <path id="hw0.runtime.module.classpath">
+    <pathelement location="${hw0.output.dir}"/>
+    <path refid="library.hw0.classpath"/>
+    <pathelement location="${idea.home}/lib/hamcrest-core-1.3.jar"/>
+    <pathelement location="${idea.home}/lib/junit-4.12.jar"/>
+  </path>
+
+
+  <patternset id="excluded.from.module.hw0">
+    <patternset refid="ignored.files"/>
+  </patternset>
+
+  <patternset id="excluded.from.compilation.hw0">
+    <patternset refid="excluded.from.module.hw0"/>
+  </patternset>
+
+  <path id="hw0.module.sourcepath">
+    <dirset dir="${module.hw0.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+
+  <path id="hw0.module.test.sourcepath">
+    <dirset dir="${module.hw0.basedir}">
+      <include name="test"/>
+    </dirset>
+  </path>
+
+
+  <target name="compile.module.hw0" depends="compile.module.hw0.production,compile.module.hw0.tests" description="Compile module hw0"/>
+
+  <target name="compile.module.hw0.production" depends="register.custom.compilers" description="Compile module hw0; production classes">
+    <mkdir dir="${hw0.output.dir}"/>
+    <javac2 destdir="${hw0.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.hw0}/javac">
+      <compilerarg line="${compiler.args.hw0}"/>
+      <bootclasspath refid="hw0.module.bootclasspath"/>
+      <classpath refid="hw0.module.production.classpath"/>
+      <src refid="hw0.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.hw0"/>
+    </javac2>
+
+    <copy todir="${hw0.output.dir}">
+      <fileset dir="${module.hw0.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="compile.module.hw0.tests" depends="register.custom.compilers,compile.module.hw0.production" description="compile module hw0; test classes" unless="skip.tests">
+    <mkdir dir="${hw0.testoutput.dir}"/>
+    <javac2 destdir="${hw0.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.hw0}/javac">
+      <compilerarg line="${compiler.args.hw0}"/>
+      <bootclasspath refid="hw0.module.bootclasspath"/>
+      <classpath refid="hw0.module.classpath"/>
+      <src refid="hw0.module.test.sourcepath"/>
+      <patternset refid="excluded.from.compilation.hw0"/>
+    </javac2>
+
+    <copy todir="${hw0.testoutput.dir}">
+      <fileset dir="${module.hw0.basedir}/test">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="clean.module.hw0" description="cleanup module">
+    <delete dir="${hw0.output.dir}"/>
+    <delete dir="${hw0.testoutput.dir}"/>
+  </target>
+</project>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="lab01" default="all">
+<project name="hw0" default="all">
   
   
   <property file="build.properties"/>
@@ -91,7 +91,7 @@
   
   <!-- Project Libraries -->
   
-  <path id="library.lab01.classpath">
+  <path id="library.hw0.classpath">
     <pathelement location="${basedir}"/>
   </path>
   <!-- Register Custom Compiler Taskdefs -->
@@ -109,7 +109,7 @@
   
   <!-- Modules -->
   
-  <import file="${basedir}/module_lab01.xml"/>
+  <import file="${basedir}/module_hw0.xml"/>
 
   <property name="src" location="src"/>
   <property name="build" location="build"/>
@@ -134,9 +134,9 @@
     </jar>
   </target>
 
-  <target name="clean" depends="clean.module.lab01" description="cleanup all"/>
+  <target name="clean" depends="clean.module.hw0" description="cleanup all"/>
   
-  <target name="build.modules" depends="init, clean, compile.module.lab01" description="build all modules"/>
+  <target name="build.modules" depends="init, clean, compile.module.hw0" description="build all modules"/>
 
   <target name="all" depends="build.modules, jar" description="build all"/>
 </project>
