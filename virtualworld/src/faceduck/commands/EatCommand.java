@@ -36,7 +36,7 @@ public class EatCommand implements Command {
 	 *             If actor is not an instance of Animal.
 	 */
 	@Override
-	public void execute(World world, Actor actor) {
+	public void execute(World world, Actor actor) throws NullPointerException {
 		if (actor == null) {
 			throw new NullPointerException("Actor cannot be null");
 		} else if (world == null) {

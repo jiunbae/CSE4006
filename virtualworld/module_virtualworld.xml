@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_virtualworld" default="compile.module.virtualworld">
+  <dirname property="module.virtualworld.basedir" file="${ant.file.module_virtualworld}"/>
+  
+  <property name="module.jdk.home.virtualworld" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.virtualworld" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.virtualworld" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.virtualworld" value="-encoding UTF-8 -source 1.8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="virtualworld.output.dir" value="${module.virtualworld.basedir}/out/production/virtualworld"/>
+  <property name="virtualworld.testoutput.dir" value="${module.virtualworld.basedir}/out/test/virtualworld"/>
+  
+  <path id="virtualworld.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="virtualworld.module.production.classpath">
+    <path refid="${module.jdk.classpath.virtualworld}"/>
+  </path>
+  
+  <path id="virtualworld.runtime.production.module.classpath">
+    <pathelement location="${virtualworld.output.dir}"/>
+  </path>
+  
+  <path id="virtualworld.module.classpath">
+    <path refid="${module.jdk.classpath.virtualworld}"/>
+    <pathelement location="${virtualworld.output.dir}"/>
+  </path>
+  
+  <path id="virtualworld.runtime.module.classpath">
+    <pathelement location="${virtualworld.testoutput.dir}"/>
+    <pathelement location="${virtualworld.output.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.virtualworld">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.virtualworld">
+    <patternset refid="excluded.from.module.virtualworld"/>
+  </patternset>
+  
+  <path id="virtualworld.module.sourcepath">
+    <dirset dir="${module.virtualworld.basedir}">
+      <include name="src"/>
+      <include name="icons"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.virtualworld" depends="compile.module.virtualworld.production,compile.module.virtualworld.tests" description="Compile module virtualworld"/>
+  
+  <target name="compile.module.virtualworld.production" description="Compile module virtualworld; production classes">
+    <mkdir dir="${virtualworld.output.dir}"/>
+    <javac destdir="${virtualworld.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.virtualworld}/javac">
+      <compilerarg line="${compiler.args.virtualworld}"/>
+      <bootclasspath refid="virtualworld.module.bootclasspath"/>
+      <classpath refid="virtualworld.module.production.classpath"/>
+      <src refid="virtualworld.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.virtualworld"/>
+    </javac>
+    
+    <copy todir="${virtualworld.output.dir}">
+      <fileset dir="${module.virtualworld.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+
+    <copy todir="${virtualworld.output.dir}/icons">
+      <fileset dir="${module.virtualworld.basedir}/icons"/>
+    </copy>
+
+    <jar jarfile="vw.jar">
+      <fileset dir="${virtualworld.output.dir}">
+        <include name="**/*.class"/>
+        <exclude name="**/*.jar"/>
+      </fileset>
+      <manifest>
+        <attribute name="Main-Class" value="faceduck.skeleton.world.WorldUI"/>
+      </manifest>
+    </jar>
+  </target>
+  
+  <target name="compile.module.virtualworld.tests" depends="compile.module.virtualworld.production" description="compile module virtualworld; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.virtualworld" description="cleanup module">
+    <delete dir="${virtualworld.output.dir}"/>
+    <delete dir="${virtualworld.testoutput.dir}"/>
+  </target>
+</project>
