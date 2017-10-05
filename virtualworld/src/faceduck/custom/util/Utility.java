@@ -4,7 +4,18 @@ import faceduck.skeleton.interfaces.*;
 import faceduck.skeleton.util.Direction;
 import faceduck.skeleton.util.Location;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Random;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.IntBinaryOperator;
+import java.util.function.Predicate;
+
 public class Utility {
+
+    // It's same seed Random object skeleton.util.Util.rand, cuz private;
+    public static final Random rand = new Random(2013);
 
     /**
      * check if can move
@@ -42,6 +53,30 @@ public class Utility {
      */
     public static boolean isValidLocation(int x, int y, int width, int height) {
         return 0 <= x && x < width && 0 <=y && y < height;
+    }
+
+    public static <T, U, R> Function<U, R> bind(BiFunction<T, U, R> f, T t) {
+        return u -> f.apply(t, u);
+    }
+
+    public static <T> boolean contain(List<T> list, T item, BiFunction<T, T, Boolean> lambda) {
+        for (final T i : list)
+            if (lambda.apply(i, item)) return true;
+        return false;
+    }
+
+    /**
+     * get value from 2d array, if valid position
+     * @param map
+     * @param x
+     * @param y
+     * @return return value of position if valid
+     */
+    public static double getValue(double[][] map, int x, int y) {
+        int width = map.length;
+        int height = map[0].length;
+        if (!Utility.isValidLocation(x, y, width, height)) return 0;
+        return map[x][y];
     }
 
     /**

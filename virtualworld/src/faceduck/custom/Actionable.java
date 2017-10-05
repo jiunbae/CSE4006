@@ -5,6 +5,8 @@ import faceduck.skeleton.interfaces.Animal;
 import faceduck.skeleton.interfaces.World;
 import faceduck.skeleton.util.Location;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static java.lang.Math.max;
@@ -12,13 +14,14 @@ import static java.lang.Math.max;
 public abstract class Actionable implements Animal {
     private static final int MAX_PROB_SIZE = 5;
 
-    private List<Pair<Integer, Integer>> choices;
+    private List<Location> choices = new ArrayList<>();
     private Probability probability = new Probability();
     private double[][] memory;
     private boolean initialized = false;
     private Location prevLoc;
     private Location nowLoc;
 
+    private int maxDistance;
     private int width;
     private int height;
 
@@ -34,6 +37,8 @@ public abstract class Actionable implements Animal {
 
         width = world.getWidth();
         height = world.getHeight();
+        maxDistance = new Location(0, 0).distanceTo(new Location(width, height));
+
         memory = new double[width][height];
         for (int i = 0; i < width; ++i)
             for (int j = 0; j < height; ++j)
@@ -115,19 +120,37 @@ public abstract class Actionable implements Animal {
         memory = newMemory;
     }
 
-    protected Pair<Integer, Integer> predict() {
-        Pair<Integer, Integer> result = new Pair<>(0, 0);
+    /**
+     * predict where to go, there is an advantage over the distance.
+     * @return maximum value in memory(where you want to go)
+     */
+    protected Location predict() {
+        Location result = new Location(Utility.rand.nextInt(width), Utility.rand.nextInt(height));
         for (int i = 0; i < width; ++i) {
             for (int j = 0; j < height; ++j) {
+                // if Location support, equals operator, it will be shorter
                 Location next = new Location(i, j);
-                if (choices.contains(new Pair<>(i, j))) continue;
-                if (memory[result.getFirst()][result.getSecond()] + nowLoc.distanceTo(Utility.localization(result))
-                        < memory[i][j] + nowLoc.distanceTo(next))
-                    result = new Pair<>(i, j);
+                if (Utility.contain(choices, next, (final Location lhs, final Location rhs) ->
+                    lhs.getX() == rhs.getX() && lhs.getY() == rhs.getY()
+                )) continue;
+                if (getScore(nowLoc, next) > getScore(nowLoc, result))
+                    result = next;
             }
         }
 
         return result;
+    }
+
+    protected double getScore(Location from, Location to) {
+        if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
+
+        double value = 0;
+        for (Heading head : Heading.values()) {
+            value += Utility.getValue(memory,
+                    to.getX() + head.getValue().getFirst(), to.getY() + head.getValue().getSecond());
+        }
+
+        return value * (maxDistance - from.distanceTo(to));
     }
 
     protected Action nextAction(World world) {
