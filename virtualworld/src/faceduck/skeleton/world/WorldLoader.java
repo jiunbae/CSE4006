@@ -28,6 +28,9 @@ public class WorldLoader {
 		this.numGnats = numGrass / 4;
 		this.numRabbits = numGrass / 4;
 		this.numFoxes = numRabbits / 8;
+
+		// custom for debug
+		this.numGnats = 1;
 	}
 
 	/**
