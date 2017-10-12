@@ -1,5 +1,6 @@
 package faceduck.actors;
 
+import faceduck.ai.RabbitAI;
 import faceduck.custom.Actionable;
 import faceduck.custom.util.Actors;
 import faceduck.custom.util.Recognizable;
@@ -21,6 +22,7 @@ public class RabbitImpl extends Actionable implements Rabbit {
 	private Recognizable[][] mWorld = null;
 
 	public RabbitImpl() {
+        super(new RabbitAI());
 	    energy = RABBIT_INITAL_ENERGY;
 	}
 

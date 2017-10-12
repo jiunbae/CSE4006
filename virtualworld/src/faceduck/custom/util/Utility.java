@@ -106,7 +106,10 @@ public class Utility {
      * @param pair
      * @return Location
      */
-    public static Location localization(Pair<Integer, Integer> pair) {
+    public static Location toLocation(Pair<Integer, Integer> pair) {
         return new Location(pair.getFirst(), pair.getSecond());
+    }
+    public static Pair<Integer, Integer> toPair(Location loc) {
+        return new Pair<>(loc.getX(), loc.getY());
     }
 }

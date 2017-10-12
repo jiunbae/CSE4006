@@ -1,9 +1,12 @@
 package faceduck.custom;
 
+import faceduck.ai.AbstractAI;
 import faceduck.custom.util.*;
+import faceduck.skeleton.interfaces.AI;
 import faceduck.skeleton.interfaces.Animal;
 import faceduck.skeleton.interfaces.World;
 import faceduck.skeleton.util.Location;
+import faceduck.skeleton.util.Util;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -14,18 +17,21 @@ import static java.lang.Math.max;
 public abstract class Actionable implements Animal {
     private static final int MAX_PROB_SIZE = 5;
 
-    private List<Location> choices = new ArrayList<>();
     private Probability probability = new Probability();
+    private World world;
     private double[][] memory;
     private boolean initialized = false;
     private Location prevLoc;
     private Location nowLoc;
+    private AI ai;
 
     private int maxDistance;
     private int width;
     private int height;
 
-    public Actionable() { }
+    public Actionable(AI ai) {
+        this.ai = ai;
+    }
 
     /**
      * first time init memory space,
@@ -60,18 +66,37 @@ public abstract class Actionable implements Animal {
     }
 
     /**
-     * judges what you seen and return preference.
+     * judges what you seen and return preference. must Override for judge objects.
      * @param actor
      * @return negative numbers for enemy, positive numbers to edible.
      */
     protected abstract double judge(Actors actor);
 
     /**
+     * Evaluate an area, can Override for custom evaluate value.
+     * @param from  now Location
+     * @param to    Location to be evaluated
+     * @return score of Location
+     */
+    protected double getScore(Location from, Location to) {
+        if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
+
+        double value = 0;
+        for (Heading head : Heading.values()) {
+            value += Utility.getValue(memory,
+                    to.getX() + head.getValue().getFirst(), to.getY() + head.getValue().getSecond());
+        }
+
+        return value * (maxDistance - from.distanceTo(to));
+    }
+
+    /**
      * behold world, save what you see in memory.
      * @param world
      */
-    protected void behold(World world) {
+    private void behold(World world) {
         init(world);
+        this.world = world;
 
         nowLoc = world.getLocation(this);
         Location nextLoc;
@@ -89,19 +114,13 @@ public abstract class Actionable implements Animal {
         }
 
         propagation();
-
-        choices.clear();
-        for (int i = 0; i < MAX_PROB_SIZE; ++i) {
-            choices.add(predict());
-        }
-
         prevLoc = nowLoc;
     }
 
     /**
      * propagation memory, predict the following situation based on memory.
      */
-    protected void propagation() {
+    private void propagation() {
         double[][] newMemory = new double[width][height];
         for (int i = 0; i < width; ++i) {
             for (int j = 0; j < height; ++j) {
@@ -122,15 +141,16 @@ public abstract class Actionable implements Animal {
 
     /**
      * predict where to go, there is an advantage over the distance.
+     * @param preChoices prevent duplicate choice
      * @return maximum value in memory(where you want to go)
      */
-    protected Location predict() {
+    private Location predict(List<Location> preChoices) {
         Location result = new Location(Utility.rand.nextInt(width), Utility.rand.nextInt(height));
         for (int i = 0; i < width; ++i) {
             for (int j = 0; j < height; ++j) {
-                // if Location support, equals operator, it will be shorter
+                // if Location support equals operator and Comparable, it will be shorter
                 Location next = new Location(i, j);
-                if (Utility.contain(choices, next, (final Location lhs, final Location rhs) ->
+                if (Utility.contain(preChoices, next, (final Location lhs, final Location rhs) ->
                     lhs.getX() == rhs.getX() && lhs.getY() == rhs.getY()
                 )) continue;
                 if (getScore(nowLoc, next) > getScore(nowLoc, result))
@@ -141,23 +161,18 @@ public abstract class Actionable implements Animal {
         return result;
     }
 
-    protected double getScore(Location from, Location to) {
-        if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
+    protected Pair<Action, Pair<Integer, Integer>> nextAction() {
+        List<Location> choices = new ArrayList<>();
+        Location loc;
 
-        double value = 0;
-        for (Heading head : Heading.values()) {
-            value += Utility.getValue(memory,
-                    to.getX() + head.getValue().getFirst(), to.getY() + head.getValue().getSecond());
-        }
+        do {
+            loc = predict(choices);
+            if (Utility.isAdjacent(nowLoc, loc)) {
 
-        return value * (maxDistance - from.distanceTo(to));
-    }
-
-    protected Action nextAction(World world) {
-        for (Action act : probability.best())
-            if (canAction(act, world))
-                return act;
-        return Action.WAIT;
+            } else {
+                return new Pair<>(Action.MOVE, Utility.toPair(loc));
+            }
+        } while (true);
     }
 
     /**

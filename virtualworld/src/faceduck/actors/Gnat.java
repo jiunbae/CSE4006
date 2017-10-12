@@ -1,10 +1,8 @@
 package faceduck.actors;
 
+import faceduck.ai.GnatAI;
 import faceduck.custom.Actionable;
-import faceduck.custom.util.Action;
-import faceduck.custom.util.Actors;
-import faceduck.custom.util.Recognizable;
-import faceduck.custom.util.Utility;
+import faceduck.custom.util.*;
 import faceduck.skeleton.interfaces.Animal;
 import faceduck.skeleton.interfaces.World;
 import faceduck.skeleton.util.Direction;
@@ -21,7 +19,9 @@ public class Gnat extends Actionable implements Animal {
 	private static final int BREED_LIMIT = 0;
 	private static final int COOL_DOWN = 0;
 
-	public Gnat(int size) { }
+	public Gnat(int size) {
+        super(new GnatAI());
+    }
 
 	@Override
 	public int getEnergy() {
@@ -58,9 +58,16 @@ public class Gnat extends Actionable implements Animal {
 
 	@Override
 	public void act(World world) {
+        if (world == null) {
+            throw new NullPointerException("World must not be null.");
+        }
+
 	    super.act(world);
 
-	    Action act = nextAction(world);
+		Pair<Action, Pair<Integer, Integer>> next = nextAction();
+
+		Action act = next.getFirst();
+		Location to = Utility.toLocation(next.getSecond());
 
 	    switch (act) {
             case WAIT:
@@ -68,14 +75,7 @@ public class Gnat extends Actionable implements Animal {
             case EAT:
                 break;
             case MOVE:
-                Location prevLoc = world.getLocation(this);
-                Location nextLoc;
-                Direction dir;
-                do {
-                    dir = Util.randomDir();
-                    nextLoc = new Location(prevLoc, dir);
-                } while (!(world.isValidLocation(nextLoc) && world.getThing(nextLoc) == null));
-                move(world, dir);
+                move(world, world.getLocation(this).dirTo(to));
                 break;
             case BREED:
                 break;

@@ -1,9 +1,11 @@
 package faceduck.actors;
 
 import com.sun.xml.internal.ws.api.config.management.Reconfigurable;
+import faceduck.ai.FoxAI;
 import faceduck.custom.Actionable;
 import faceduck.custom.util.Actors;
 import faceduck.custom.util.Recognizable;
+import faceduck.skeleton.interfaces.AI;
 import faceduck.skeleton.interfaces.Fox;
 import faceduck.skeleton.interfaces.World;
 import faceduck.skeleton.util.Direction;
@@ -14,6 +16,10 @@ public class FoxImpl extends Actionable implements Fox {
 	private static final int FOX_BREED_LIMIT = FOX_MAX_ENERGY * 3 / 4;
 	private static final int FOX_COOL_DOWN = 2;
 	private static final int FOX_INITAL_ENERGY = FOX_MAX_ENERGY * 1 / 2;
+
+	public FoxImpl() {
+		super(new FoxAI());
+	}
 
 	@Override
 	public int getEnergy() {
