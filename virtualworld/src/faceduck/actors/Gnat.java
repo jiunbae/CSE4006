@@ -4,6 +4,7 @@ import faceduck.ai.GnatAI;
 import faceduck.custom.Actionable;
 import faceduck.custom.util.*;
 import faceduck.skeleton.interfaces.Animal;
+import faceduck.skeleton.interfaces.Command;
 import faceduck.skeleton.interfaces.World;
 import faceduck.skeleton.util.Direction;
 import faceduck.skeleton.util.Location;
@@ -64,22 +65,8 @@ public class Gnat extends Actionable implements Animal {
 
 	    super.act(world);
 
-		Pair<Action, Pair<Integer, Integer>> next = nextAction();
-
-		Action act = next.getFirst();
-		Location to = Utility.toLocation(next.getSecond());
-
-	    switch (act) {
-            case WAIT:
-                break;
-            case EAT:
-                break;
-            case MOVE:
-                move(world, world.getLocation(this).dirTo(to));
-                break;
-            case BREED:
-                break;
-        }
+        Command cmd = nextCommand();
+        cmd.execute(world, this);
 	}
 
 	@Override

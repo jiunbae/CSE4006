@@ -1,10 +1,13 @@
 package faceduck.custom;
 
 import faceduck.ai.AbstractAI;
+import faceduck.commands.EatCommand;
 import faceduck.custom.util.*;
 import faceduck.skeleton.interfaces.AI;
 import faceduck.skeleton.interfaces.Animal;
+import faceduck.skeleton.interfaces.Command;
 import faceduck.skeleton.interfaces.World;
+import faceduck.skeleton.util.Direction;
 import faceduck.skeleton.util.Location;
 import faceduck.skeleton.util.Util;
 
@@ -161,16 +164,34 @@ public abstract class Actionable implements Animal {
         return result;
     }
 
-    protected Pair<Action, Pair<Integer, Integer>> nextAction() {
+    /**
+     *
+     */
+    protected Command nextCommand() {
+        Pair<Action, Direction> nextAct = nextAction();
+        return nextAct.getFirst().command(nextAct.getSecond());
+    }
+
+    /**
+     * return Action
+     * @return
+     */
+    protected Pair<Action, Direction> nextAction() {
         List<Location> choices = new ArrayList<>();
         Location loc;
 
         do {
             loc = predict(choices);
             if (Utility.isAdjacent(nowLoc, loc)) {
+                Object obj = world.getThing(loc);
 
             } else {
-                return new Pair<>(Action.MOVE, Utility.toPair(loc));
+                for (Direction to : Utility.workload(nowLoc.dirTo(loc))) {
+                    Object obj = world.getThing(Utility.destination(nowLoc, to));
+                    if (obj == null)
+                        return new Pair<>(Action.MOVE, to);
+                }
+                return new Pair<>(Action.WAIT, null);
             }
         } while (true);
     }

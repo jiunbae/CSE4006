@@ -4,6 +4,7 @@ import faceduck.skeleton.interfaces.*;
 import faceduck.skeleton.util.Direction;
 import faceduck.skeleton.util.Location;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
@@ -44,6 +45,64 @@ public class Utility {
     }
 
     /**
+     * workload return clock side directions
+     * @param dir
+     * @return list of Direction
+     */
+    public static List<Direction> workload(Direction dir) {
+        List<Direction> ret = new ArrayList<>();
+
+        ret.add(dir);
+        ret.add(leftside(dir));
+        ret.add(rightside(dir));
+        ret.add(opside(dir));
+
+        return ret;
+    }
+
+    public static Direction leftside(Direction dir) {
+        switch (dir) {
+            case NORTH:
+                return Direction.EAST;
+            case SOUTH:
+                return Direction.WEST;
+            case EAST:
+                return Direction.NORTH;
+            case WEST:
+                return Direction.SOUTH;
+        }
+        return null;
+    }
+
+    public static Direction rightside(Direction dir) {
+        switch (dir) {
+            case NORTH:
+                return Direction.WEST;
+            case SOUTH:
+                return Direction.EAST;
+            case EAST:
+                return Direction.SOUTH;
+            case WEST:
+                return Direction.NORTH;
+        }
+        return null;
+    }
+
+    public static Direction opside(Direction dir) {
+        switch (dir) {
+            case NORTH:
+                return Direction.SOUTH;
+            case SOUTH:
+                return Direction.NORTH;
+            case EAST:
+                return Direction.WEST;
+            case WEST:
+                return Direction.EAST;
+        }
+        return null;
+    }
+
+    /**
      * check position valid
      * @param x
      * @param y
@@ -53,6 +112,11 @@ public class Utility {
      */
     public static boolean isValidLocation(int x, int y, int width, int height) {
         return 0 <= x && x < width && 0 <=y && y < height;
+    }
+
+    public static Location destination(Location loc, Direction dir) {
+        Heading to = toHeading(dir);
+        return new Location(loc.getX() + to.getValue().getFirst(), loc.getY() + to.getValue().getSecond());
     }
 
     public static <T, U, R> Function<U, R> bind(BiFunction<T, U, R> f, T t) {
@@ -111,5 +175,19 @@ public class Utility {
     }
     public static Pair<Integer, Integer> toPair(Location loc) {
         return new Pair<>(loc.getX(), loc.getY());
+    }
+
+    public static Heading toHeading(Direction dir) {
+        switch (dir) {
+            case NORTH:
+                return Heading.UP;
+            case SOUTH:
+                return Heading.DOWN;
+            case EAST:
+                return Heading.LEFT;
+            case WEST:
+                return Heading.RIGHT;
+        }
+        return Heading.STAY;
     }
 }

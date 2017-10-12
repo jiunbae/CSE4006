@@ -1,6 +1,6 @@
 package faceduck.custom.util;
 
-public class Pair<A extends Comparable, B extends Comparable> implements Comparable<Pair<A, B>> {
+public class Pair<A extends Comparable, B> implements Comparable<Pair<A, B>> {
     private A first;
     private B second;
 

@@ -10,6 +10,7 @@ import faceduck.skeleton.util.Direction;
  * This command calls an {@link Animal} to breed.
  */
 public class BreedCommand implements Command {
+
 	private Direction dir;
 
 	/**
