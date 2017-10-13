@@ -185,6 +185,7 @@ public abstract class Actionable implements Animal {
             if (Utility.isAdjacent(nowLoc, loc)) {
                 Object obj = world.getThing(loc);
 
+
             } else {
                 for (Direction to : Utility.workload(nowLoc.dirTo(loc))) {
                     Object obj = world.getThing(Utility.destination(nowLoc, to));
