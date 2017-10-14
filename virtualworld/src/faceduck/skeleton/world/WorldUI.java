@@ -1,15 +1,16 @@
 package faceduck.skeleton.world;
 
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
+import faceduck.custom.util.Actors;
+import faceduck.custom.util.Pair;
 import faceduck.skeleton.interfaces.World;
+import faceduck.skeleton.util.LogUI;
 
 /**
  * This class represents the GUI for the virtual world simulation.
@@ -17,6 +18,8 @@ import faceduck.skeleton.interfaces.World;
 @SuppressWarnings("serial")
 public class WorldUI extends JPanel {
 
+//	private final int X_DIM = 40;
+//	private final int Y_DIM = 20;
 	private final int X_DIM = 40;
 	private final int Y_DIM = 20;
 
@@ -25,6 +28,15 @@ public class WorldUI extends JPanel {
 	private final WorldPanel worldPanel;
 	private final JButton step;
 	private final JButton run;
+
+	// @Custom Improve
+    private static JFrame logFrame;
+    private static LogUI vLog;
+    private final HashMap<Actors, Pair<JLabel, JLabel>> labelList;
+
+    private final JLabel genLabel;
+    private final JLabel genValue;
+    // END
 
 	public WorldUI() {
 		// set the layout of the UI
@@ -48,9 +60,47 @@ public class WorldUI extends JPanel {
 		run = new JButton("Start");
 		bottom.add(run, BorderLayout.WEST);
 
-		add(bottom, BorderLayout.SOUTH);
+        // @Custom Improve
+        vLog = new LogUI(Actors.FOX, Actors.RABBIT, Actors.GRASS, Actors.GNAT);
 
-		// add functionality to the step button.
+        labelList = new HashMap();
+        vLog.forEachActors((Actors actor) -> {
+            labelList.put(actor, new Pair<>(new JLabel(", " + actor.toString() + ": "), new JLabel("0")));
+        });
+
+
+        JPanel information = new JPanel();
+        information.setLayout(new FlowLayout(FlowLayout.CENTER));
+
+        genLabel = new JLabel("Gen: ");
+        genValue = new JLabel("0");
+
+        labelList.forEach((actor, labels) -> {
+            information.add(labels.getFirst());
+            information.add(labels.getSecond());
+        });
+
+        information.add(genValue, FlowLayout.LEFT);
+        information.add(genLabel, FlowLayout.LEFT);
+
+        worldPanel.setStepConsumer((World world) -> {
+            genValue.setText(Integer.toString(world.getGeneration()));
+            labelList.forEach((actor, labels)-> {
+                labels.getSecond().setText(Integer.toString(world.getCount(actor)));
+            });
+
+            vLog.log(world.getCount());
+            logFrame.invalidate();
+            logFrame.validate();
+            logFrame.repaint();
+        });
+
+        bottom.add(information, FlowLayout.LEFT);
+        // END
+
+        add(bottom, BorderLayout.SOUTH);
+
+        // add functionality to the step button.
 		step.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent evt) {
@@ -102,6 +152,14 @@ public class WorldUI extends JPanel {
 				f.pack();
 				f.setResizable(false);
 				f.setVisible(true);
+
+				// @Custom Improve
+                logFrame = new JFrame("Virtual World Log");
+                logFrame.add(vLog);
+                logFrame.pack();
+                logFrame.setResizable(false);
+                logFrame.setVisible(true);
+                // END
 			}
 		});
 	}

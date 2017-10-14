@@ -16,7 +16,8 @@ import faceduck.skeleton.interfaces.World;
 public class Util {
 
 	private static final int NUM_DIRECTIONS = Direction.values().length;
-	private static final Random rand = new Random(2013);
+	// @Custom Improve: make private rand to public
+	public static final Random rand = new Random(2013);
 
 	/**
 	 * Returns a random Direction.

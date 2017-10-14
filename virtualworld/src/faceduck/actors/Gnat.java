@@ -1,6 +1,5 @@
 package faceduck.actors;
 
-import faceduck.ai.GnatAI;
 import faceduck.custom.Actionable;
 import faceduck.custom.util.*;
 import faceduck.skeleton.interfaces.Animal;
@@ -14,19 +13,19 @@ import faceduck.skeleton.util.Util;
  * This is a simple implementation of a Gnat. It never loses energy and moves in
  * random directions.
  */
-public class Gnat extends Actionable implements Animal {
-	private static final int MAX_ENERGY = 10;
+public class Gnat extends Actionable {
+	private static final int MAX_ENERGY = 0;
 	private static final int VIEW_RANGE = 1;
 	private static final int BREED_LIMIT = 0;
 	private static final int COOL_DOWN = 0;
 
 	public Gnat(int size) {
-        super(new GnatAI());
+        super();
     }
 
-	@Override
-	public int getEnergy() {
-		return 0;
+    @Override
+    public int getInitialEnergy() {
+	    return 0;
 	}
 
 	@Override
@@ -37,36 +36,6 @@ public class Gnat extends Actionable implements Animal {
 	@Override
 	public int getBreedLimit() {
 		return BREED_LIMIT;
-	}
-
-	@Override
-	public void eat(World world, Direction dir) {
-	}
-
-	@Override
-	public void move(World world, Direction dir) {
-	    Location prevLoc = world.getLocation(this);
-	    Location nextLoc = new Location(prevLoc, dir);
-
-	    world.remove(this);
-	    world.add(this, nextLoc);
-	}
-
-	@Override
-	public void breed(World world, Direction dir) {
-
-	}
-
-	@Override
-	public void act(World world) {
-        if (world == null) {
-            throw new NullPointerException("World must not be null.");
-        }
-
-	    super.act(world);
-
-        Command cmd = nextCommand();
-        cmd.execute(world, this);
 	}
 
 	@Override

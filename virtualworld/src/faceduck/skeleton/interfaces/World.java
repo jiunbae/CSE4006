@@ -1,7 +1,9 @@
 package faceduck.skeleton.interfaces;
 
+import java.util.HashMap;
 import java.util.Set;
 
+import faceduck.custom.util.Actors;
 import faceduck.skeleton.util.Location;
 
 public interface World {
@@ -107,4 +109,28 @@ public interface World {
 	 * @return true if loc is valid in the world, false otherwise.
 	 */
 	public boolean isValidLocation(Location loc);
+
+	/**
+	 * Return generation
+	 *
+	 * @return generation from now one
+     * @Custom Improve
+	 */
+	public int getGeneration();
+
+    /**
+     * Return how many {@link Actors} in world
+     *
+     * @return hole counts
+     */
+	public HashMap<Actors, Integer> getCount();
+
+	/**
+	 * Return how many {@link Actors} in world.
+	 *
+	 * @param actor
+	 * @return count of actors
+     * @Custom Improve
+	 */
+	public int getCount(Actors actor);
 }

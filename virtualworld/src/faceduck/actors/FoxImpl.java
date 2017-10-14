@@ -1,29 +1,28 @@
 package faceduck.actors;
 
 import com.sun.xml.internal.ws.api.config.management.Reconfigurable;
-import faceduck.ai.FoxAI;
 import faceduck.custom.Actionable;
 import faceduck.custom.util.Actors;
 import faceduck.custom.util.Recognizable;
-import faceduck.skeleton.interfaces.AI;
-import faceduck.skeleton.interfaces.Fox;
-import faceduck.skeleton.interfaces.World;
+import faceduck.skeleton.interfaces.*;
 import faceduck.skeleton.util.Direction;
+import faceduck.skeleton.util.Location;
 
 public class FoxImpl extends Actionable implements Fox {
 	private static final int FOX_MAX_ENERGY = 160;
 	private static final int FOX_VIEW_RANGE = 5;
 	private static final int FOX_BREED_LIMIT = FOX_MAX_ENERGY * 3 / 4;
 	private static final int FOX_COOL_DOWN = 2;
-	private static final int FOX_INITAL_ENERGY = FOX_MAX_ENERGY * 1 / 2;
+	private static final int FOX_INITIAL_ENERGY = FOX_MAX_ENERGY * 1 / 2;
 
 	public FoxImpl() {
-		super(new FoxAI());
+		super();
+		addEdible(RabbitImpl.class);
 	}
 
 	@Override
-	public int getEnergy() {
-		return 0;
+	public int getInitialEnergy() {
+		return FOX_INITIAL_ENERGY;
 	}
 
 	@Override
@@ -34,26 +33,6 @@ public class FoxImpl extends Actionable implements Fox {
 	@Override
 	public int getBreedLimit() {
 		return FOX_BREED_LIMIT;
-	}
-
-	@Override
-	public void eat(World world, Direction dir) {
-
-	}
-
-	@Override
-	public void move(World world, Direction dir) {
-
-	}
-
-	@Override
-	public void breed(World world, Direction dir) {
-
-	}
-
-	@Override
-	public void act(World world) {
-
 	}
 
 	@Override

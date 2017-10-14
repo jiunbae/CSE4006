@@ -1,9 +1,9 @@
 package faceduck.actors;
 
-import faceduck.ai.RabbitAI;
 import faceduck.custom.Actionable;
 import faceduck.custom.util.Actors;
 import faceduck.custom.util.Recognizable;
+import faceduck.skeleton.interfaces.Command;
 import faceduck.skeleton.interfaces.Rabbit;
 import faceduck.skeleton.interfaces.World;
 import faceduck.skeleton.util.Direction;
@@ -16,19 +16,16 @@ public class RabbitImpl extends Actionable implements Rabbit {
 	private static final int RABBIT_BREED_LIMIT = RABBIT_MAX_ENERGY * 2 / 4;
 	private static final int RABBIT_ENERGY_VALUE = 20;
 	private static final int RABBIT_COOL_DOWN = 4;
-	private static final int RABBIT_INITAL_ENERGY = RABBIT_MAX_ENERGY * 1 / 2;
-
-	private int energy = 0;
-	private Recognizable[][] mWorld = null;
+	private static final int RABBIT_INITIAL_ENERGY = RABBIT_MAX_ENERGY * 1 / 2;
 
 	public RabbitImpl() {
-        super(new RabbitAI());
-	    energy = RABBIT_INITAL_ENERGY;
+        super();
+        addEdible(Grass.class);
 	}
 
-    @Override
-    public int getEnergy() {
-        return energy;
+	@Override
+    public int getInitialEnergy() {
+	    return RABBIT_INITIAL_ENERGY;
     }
 
     @Override
@@ -39,25 +36,6 @@ public class RabbitImpl extends Actionable implements Rabbit {
     @Override
     public int getBreedLimit() {
         return RABBIT_BREED_LIMIT;
-    }
-
-    @Override
-    public void eat(World world, Direction dir) {
-
-    }
-
-    @Override
-    public void move(World world, Direction dir) {
-
-    }
-
-    @Override
-    public void breed(World world, Direction dir) {
-
-    }
-
-    @Override
-    public void act(World world) {
     }
 
     @Override

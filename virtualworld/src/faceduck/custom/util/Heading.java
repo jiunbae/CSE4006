@@ -1,7 +1,5 @@
 package faceduck.custom.util;
 
-import faceduck.skeleton.util.Direction;
-
 public enum Heading {
     STAY(0, 0), UP(0, -1), RIGHT(1, 0), DOWN(0, 1), LEFT(-1, 0);
 

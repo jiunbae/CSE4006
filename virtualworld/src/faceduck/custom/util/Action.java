@@ -9,7 +9,7 @@ import faceduck.skeleton.interfaces.Command;
 import faceduck.skeleton.util.Direction;
 
 public enum Action {
-    WAIT(0), EAT(1), MOVE(2), BREED(3);
+    BREED(0), EAT(1), MOVE(2), WAIT(3);
 
     private final int value;
     Action(int value) {
@@ -20,14 +20,14 @@ public enum Action {
     }
     public Command command(Direction dir) {
         switch (this) {
-            case WAIT:
-                return new WaitCommand(dir);
+            case BREED:
+                return new BreedCommand(dir);
             case EAT:
                 return new EatCommand(dir);
             case MOVE:
                 return new MoveCommand(dir);
-            case BREED:
-                return new BreedCommand(dir);
+            case WAIT:
+                return new WaitCommand(dir);
         }
         return null;
     }

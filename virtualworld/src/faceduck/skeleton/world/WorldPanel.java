@@ -3,6 +3,7 @@ package faceduck.skeleton.world;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.util.function.Consumer;
 
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
@@ -22,6 +23,9 @@ import faceduck.skeleton.util.Location;
  */
 @SuppressWarnings("serial")
 public class WorldPanel extends JPanel implements Runnable {
+
+    // @Custom Improve
+    private Consumer<World> stepConsumer;
 
 	private final int IMAGE_SIZE = 40;
 	private final World world;
@@ -51,6 +55,14 @@ public class WorldPanel extends JPanel implements Runnable {
 		this.setPreferredSize(preferredSize);
 		this.setBackground(Color.WHITE);
 	}
+
+    /**
+     * set stepConsumer for apply function every step.
+     * @param consumer
+     */
+	public void setStepConsumer(Consumer<World> consumer) {
+	    stepConsumer = consumer;
+    }
 
 	/**
 	 * This method paints the graphics of each object in the world.
@@ -89,6 +101,7 @@ public class WorldPanel extends JPanel implements Runnable {
 	 */
 	public boolean step() {
 		boolean ret = world.step();
+		stepConsumer.accept(world);
 		repaint();
 		sleep();
 		return ret;

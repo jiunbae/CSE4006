@@ -4,14 +4,8 @@ import faceduck.skeleton.interfaces.*;
 import faceduck.skeleton.util.Direction;
 import faceduck.skeleton.util.Location;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.IntBinaryOperator;
-import java.util.function.Predicate;
+import java.util.*;
+import java.util.function.*;
 
 public class Utility {
 
@@ -21,13 +15,13 @@ public class Utility {
     /**
      * check if can move
      * @param world
-     * @param actor
+     * @param loc
      * @return {@link Actor} can move in {@link World}
      */
-    public static boolean isClosed(World world, Actor actor) {
+    public static boolean isClosed(World world, Location loc) {
         Location next;
         for (Direction dir : Direction.values()) {
-            next = new Location(world.getLocation(actor), dir);
+            next = new Location(loc, dir);
             if (world.isValidLocation(next) && world.getThing(next) == null)
                 return false;
         }
@@ -42,6 +36,20 @@ public class Utility {
      */
     public static boolean isAdjacent(Location lhs, Location rhs) {
         return lhs.distanceTo(rhs) == 1;
+    }
+
+    /**
+     * return random adjacent from location
+     * @return
+     */
+    public static Direction randomAdjacent(Function<Direction, Boolean> f) {
+        List<Direction> deck = Arrays.asList(Direction.values());
+        Collections.shuffle(deck);
+        for (Direction dir : deck) {
+            if (f.apply(dir))
+                return dir;
+        }
+        return null;
     }
 
     /**
@@ -154,13 +162,13 @@ public class Utility {
                 return Actors.FOX;
             } else if (obj instanceof Rabbit) {
                 return Actors.RABBIT;
-            } else if (obj instanceof Edible) {
-                return Actors.GRASS;
             } else if (obj instanceof Animal) {
                 return Actors.GNAT;
             } else {
                 return Actors.GARDENER;
             }
+        } else if (obj instanceof Edible) {
+            return Actors.GRASS;
         }
         return Actors.EMPTY;
     }
@@ -173,6 +181,7 @@ public class Utility {
     public static Location toLocation(Pair<Integer, Integer> pair) {
         return new Location(pair.getFirst(), pair.getSecond());
     }
+
     public static Pair<Integer, Integer> toPair(Location loc) {
         return new Pair<>(loc.getX(), loc.getY());
     }
@@ -184,9 +193,9 @@ public class Utility {
             case SOUTH:
                 return Heading.DOWN;
             case EAST:
-                return Heading.LEFT;
-            case WEST:
                 return Heading.RIGHT;
+            case WEST:
+                return Heading.LEFT;
         }
         return Heading.STAY;
     }

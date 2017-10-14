@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import faceduck.custom.util.Actors;
+import faceduck.custom.util.Utility;
 import faceduck.skeleton.interfaces.Actor;
 import faceduck.skeleton.interfaces.World;
 import faceduck.skeleton.util.Location;
@@ -16,6 +18,10 @@ import faceduck.skeleton.util.Location;
  * maps objects in the world to location.
  */
 public class WorldImpl implements World {
+	// @Custom Improve
+	private int generation = 0;
+    protected HashMap<Actors, Integer> counts;
+	// END
 
 	private int width;
 	private int height;
@@ -65,6 +71,13 @@ public class WorldImpl implements World {
 
 		actorToWait = new HashMap<Actor, Integer>();
 		// this.nameToCount = new HashMap<String, Integer>();
+
+        // @Custom Improve
+        counts = new HashMap<Actors, Integer>();
+        for (Actors actors : Actors.values()) {
+            counts.put(actors, 0);
+        }
+        // END
 	}
 
 	// used for arena
@@ -208,6 +221,11 @@ public class WorldImpl implements World {
 		// String s = this.aiToName.get(faceduck.ai.getClass());
 		// this.nameToCount.put(s, this.nameToCount.get(s) + 1);
 		// }
+
+        // @Custom Improve
+        Actors actors = Utility.recognize(newThing);
+		counts.put(actors, counts.get(actors) + 1);
+		// END
 	}
 
 	/**
@@ -257,6 +275,11 @@ public class WorldImpl implements World {
 		// String s = this.aiToName.get(faceduck.ai.getClass());
 		// this.nameToCount.put(s, this.nameToCount.get(s) - 1);
 		// }
+
+        // @Custom Improve
+        Actors actors = Utility.recognize(oldThing);
+        counts.put(actors, counts.get(actors) - 1);
+        // END
 	}
 
 	/**
@@ -338,10 +361,33 @@ public class WorldImpl implements World {
 		// System.out.println("Name: " + s + "Count: " + nameToCount.get(s));
 		// }
 
+        // @Custom Improve
+        generation += 1;
+
 		return true;
 	}
 
-	/**
+    /**
+     * @Custom Improve
+     *
+     * @return generation from now one
+     */
+    @Override
+	public int getGeneration() {
+	    return generation;
+    }
+
+    @Override
+    public HashMap<Actors, Integer> getCount() {
+        return counts;
+    }
+
+    @Override
+    public int getCount(Actors actor) {
+        return counts.get(actor);
+    }
+
+    /**
 	 * Returns true if loc is a valid location in the world, false otherwise.
 	 *
 	 * @param loc

@@ -1,43 +1,62 @@
 package faceduck.custom;
 
-import faceduck.ai.AbstractAI;
-import faceduck.commands.EatCommand;
 import faceduck.custom.util.*;
-import faceduck.skeleton.interfaces.AI;
-import faceduck.skeleton.interfaces.Animal;
-import faceduck.skeleton.interfaces.Command;
-import faceduck.skeleton.interfaces.World;
+import faceduck.skeleton.interfaces.*;
 import faceduck.skeleton.util.Direction;
 import faceduck.skeleton.util.Location;
-import faceduck.skeleton.util.Util;
 
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 
+import static java.lang.Math.floor;
 import static java.lang.Math.max;
+import static java.lang.Math.min;
 
-public abstract class Actionable implements Animal {
-    private static final int MAX_PROB_SIZE = 5;
-
-    private Probability probability = new Probability();
-    private World world;
-    private double[][] memory;
+/**
+ * Actionable is how can take action implements {@link Animal}
+ *
+ * You must execute {@link #act(World)} as super.act(world) before do something in act.
+ * This method will propagation {@link Actionable}'s memory to judge where is best place to next.
+ *
+ * {@link #decide()} return best command to do next in view of memory.
+ *
+ * Actionable replace all of AI Class, because, each class does not need a separate AI.
+ * It always chooses the best place to act.
+ *
+ * All you have to do is just override {@link #judge(Actors)} to evaluate objects.
+ * Furthermore, you should override {@link #evaluate(Location, Location)} to evaluate area.
+ * Then Actionable move the best area evaluated.
+ */
+public abstract class Actionable implements Animal, Cloneable {
+    private HashSet<Class<?>> edible = new HashSet<>();
     private boolean initialized = false;
+    private double[][] memory;
+    private World world;
+
     private Location prevLoc;
     private Location nowLoc;
-    private AI ai;
 
     private int maxDistance;
     private int width;
     private int height;
+    private int energy;
 
-    public Actionable(AI ai) {
-        this.ai = ai;
+    public Actionable() {
+        energy = getInitialEnergy();
     }
 
     /**
-     * first time init memory space,
+     * Remove this from world, when die
+     */
+    @Override
+    public void finalize() {
+        world.remove(this);
+    }
+
+    /**
+     * First time init memory space,
+     *
      * @param world
      *          The world you belong.
      */
@@ -59,29 +78,63 @@ public abstract class Actionable implements Animal {
     }
 
     /**
-     * must super before act, You must see and judge before you act on something.
-     * @param world
-     *            The world that the actor is currently in.
+     * Must super before act, You must see and judge before you act on something.
+     *
+     * @param world actor is currently in.
      */
     @Override
     public void act(World world) {
+        if (world == null)
+            throw new NullPointerException("World must not be null.");
+
+        // propagation coolDown times, cuz think other moves during cool down.
+        for (int i = 0; i <= getCoolDown(); i++)
+            propagation();
+
+        // update memory, see world and arrange memory to right predict.
         behold(world);
+
+        // get best choice
+        Command cmd = decide();
+        cmd.execute(world, this);
+
+        // do something(even if wait) is take energy.
+        energy -= 1;
+        energy = max(0, energy);
+
+        // die if energy under 0
+        if (energy <= 0 && energy != getMaxEnergy())
+            this.finalize();
     }
 
     /**
-     * judges what you seen and return preference. must Override for judge objects.
-     * @param actor
+     * Add actor class to check edible
+     *
+     * @param animal can it
+     */
+    protected void addEdible(Class<?> animal) {
+        edible.add(animal);
+    }
+
+    /**
+     * Judges what you seen and return preference. Must override for judge objects.
+     *
+     * @param actor to judge
      * @return negative numbers for enemy, positive numbers to edible.
      */
     protected abstract double judge(Actors actor);
 
+    protected abstract int getInitialEnergy();
+
     /**
-     * Evaluate an area, can Override for custom evaluate value.
+     * Evaluate an area, can override for custom evaluate function.
+     * Default value is sum of the places next to {@link Location} and multiple reciprocal of distance.
+     *
      * @param from  now Location
      * @param to    Location to be evaluated
      * @return score of Location
      */
-    protected double getScore(Location from, Location to) {
+    protected double evaluate(Location from, Location to) {
         if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
 
         double value = 0;
@@ -94,8 +147,10 @@ public abstract class Actionable implements Animal {
     }
 
     /**
-     * behold world, save what you see in memory.
-     * @param world
+     * Behold world, save what you see in memory.
+     * Can see only as much as your {@link #getViewRange()}
+     *
+     * @param world to seen
      */
     private void behold(World world) {
         init(world);
@@ -116,12 +171,12 @@ public abstract class Actionable implements Animal {
             }
         }
 
-        propagation();
         prevLoc = nowLoc;
     }
 
     /**
      * propagation memory, predict the following situation based on memory.
+     * Basically, everything moves 25% each {@link Heading}.
      */
     private void propagation() {
         double[][] newMemory = new double[width][height];
@@ -143,56 +198,62 @@ public abstract class Actionable implements Animal {
     }
 
     /**
-     * predict where to go, there is an advantage over the distance.
+     * Best location where to go, evaluate with the {@link #evaluate(Location, Location)}.
+     * You can override {@link #evaluate(Location, Location)} to make custom evaluate function.
+     *
      * @param preChoices prevent duplicate choice
      * @return maximum value in memory(where you want to go)
      */
-    private Location predict(List<Location> preChoices) {
+    private Location bestLocation(List<Location> preChoices) {
         Location result = new Location(Utility.rand.nextInt(width), Utility.rand.nextInt(height));
         for (int i = 0; i < width; ++i) {
             for (int j = 0; j < height; ++j) {
-                // if Location support equals operator and Comparable, it will be shorter
                 Location next = new Location(i, j);
                 if (Utility.contain(preChoices, next, (final Location lhs, final Location rhs) ->
                     lhs.getX() == rhs.getX() && lhs.getY() == rhs.getY()
                 )) continue;
-                if (getScore(nowLoc, next) > getScore(nowLoc, result))
+                if (evaluate(nowLoc, next) > evaluate(nowLoc, result))
                     result = next;
             }
         }
 
+        preChoices.add(result);
         return result;
     }
 
-    /**
-     *
-     */
-    protected Command nextCommand() {
-        Pair<Action, Direction> nextAct = nextAction();
-        return nextAct.getFirst().command(nextAct.getSecond());
-    }
 
     /**
-     * return Action
-     * @return
+     * Return best choice to next move.
+     *
+     * @return the best command
      */
-    protected Pair<Action, Direction> nextAction() {
+    protected Command decide() {
         List<Location> choices = new ArrayList<>();
         Location loc;
 
         do {
-            loc = predict(choices);
-            if (Utility.isAdjacent(nowLoc, loc)) {
-                Object obj = world.getThing(loc);
+            loc = bestLocation(choices);
+            Direction dir = nowLoc.dirTo(loc);
 
+            if (canAction(Action.BREED, nowLoc)) {
+                dir = Utility.randomAdjacent(t ->
+                        world.isValidLocation(Utility.destination(nowLoc, t)) &&
+                        world.getThing(Utility.destination(nowLoc, t)) == null);
+                if (dir != null) return Action.BREED.command(dir);
+            }
 
+            if (canAction(Action.EAT, Utility.destination(nowLoc, dir))) {
+                return Action.EAT.command(dir);
+            } else if (canAction(Action.MOVE, Utility.destination(nowLoc, dir))) {
+                return Action.MOVE.command(dir);
             } else {
-                for (Direction to : Utility.workload(nowLoc.dirTo(loc))) {
-                    Object obj = world.getThing(Utility.destination(nowLoc, to));
-                    if (obj == null)
-                        return new Pair<>(Action.MOVE, to);
-                }
-                return new Pair<>(Action.WAIT, null);
+                for (Direction to : Utility.workload(dir))
+                    if (canAction(Action.MOVE, Utility.destination(nowLoc, to)))
+                        return Action.MOVE.command(to);
+            }
+
+            if (Utility.isClosed(world, nowLoc)) {
+                return Action.WAIT.command(null);
             }
         } while (true);
     }
@@ -200,22 +261,115 @@ public abstract class Actionable implements Animal {
     /**
      * Determine if can take action.
      * so, always can WAIT
+     *
      * @param act
-     * @param world
      * @return true if can take action
      */
-    protected boolean canAction(Action act, World world) {
+    protected boolean canAction(Action act, Location loc) {
+        Object obj = world.getThing(loc);
         switch(act) {
             case WAIT:
                 return true;
             case MOVE:
-                return !Utility.isClosed(world, this);
+                return obj == null;
             case EAT:
-                return false;
+                return obj instanceof Edible && edible.contains(obj.getClass());
             case BREED:
-                return false;
+                return energy > this.getBreedLimit() && !Utility.isClosed(world, loc);
             default:
                 return false;
+        }
+    }
+
+    /**
+     * Earn energy value, call when take edible
+     *
+     * @param value to earn
+     */
+    private void earnEnergy(int value) {
+        energy += value;
+        energy = min(energy, getMaxEnergy());
+    }
+
+    /**
+     * Make clone, override Cloneable. Child objects take half of energy.
+     * Not able to use the constructor method because forced to not use <code>java.reflect</code> in the manual.
+     *
+     * @return clone of this instance.
+     */
+    @Override
+    public Actionable clone() {
+        energy = (int) floor(energy / 2);
+        final Actionable clone;
+        try {
+            clone = (Actionable) super.clone();
+            clone.energy = this.energy;
+            clone.initialized = false;
+            return clone;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Eat something in the world
+     * The command returned from {@link #act(World)} ensures that this action can be taken.
+     *
+     * @param world
+     *            The world containing this actor.
+     * @param dir
+     *            The direction of the Actor to eat.
+     *
+     */
+    @Override
+    public void eat(World world, Direction dir) {
+        Location prevLoc = world.getLocation(this);
+        Location targetLoc = new Location(prevLoc, dir);
+
+        Edible target = (Edible) world.getThing(targetLoc);
+        earnEnergy(target.getEnergyValue());
+        world.remove(target);
+    }
+
+    /**
+     * Move to somewhere.
+     * The command returned from {@link #act(World)} ensures that this action can be taken.
+     *
+     * @param world
+     *            The world containing this actor.
+     * @param dir
+     *            The direction to move in.
+     *
+     */
+    @Override
+    public void move(World world, Direction dir) {
+        Location prevLoc = world.getLocation(this);
+        Location nextLoc = new Location(prevLoc, dir);
+
+        world.remove(this);
+        world.add(this, nextLoc);
+    }
+
+    /**
+     * Breed child to someplace.
+     * The command returned from {@link #act(World)} ensures that this action can be taken.
+     *
+     * @param world
+     *            The world containing this actor.
+     * @param dir
+     *            The direction in which the new Animal will spawn.
+     *
+     */
+    @Override
+    public void breed(World world, Direction dir) {
+        Location prevLoc = world.getLocation(this);
+        Location nextLoc = new Location(prevLoc, dir);
+
+        try {
+            world.add(this.clone(), nextLoc);
+        } catch(Exception e) {
+            e.printStackTrace();
         }
     }
 }

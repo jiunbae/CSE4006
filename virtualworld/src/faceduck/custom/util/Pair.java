@@ -1,6 +1,6 @@
 package faceduck.custom.util;
 
-public class Pair<A extends Comparable, B> implements Comparable<Pair<A, B>> {
+public class Pair<A, B> {
     private A first;
     private B second;
 
@@ -49,12 +49,5 @@ public class Pair<A extends Comparable, B> implements Comparable<Pair<A, B>> {
 
     public void setSecond(B second) {
         this.second = second;
-    }
-
-    @Override
-    public int compareTo(Pair<A, B> o) {
-        if (this.first == o.first)
-            return this.first.compareTo(o.second);
-        return this.first.compareTo(o.first);
     }
 }
