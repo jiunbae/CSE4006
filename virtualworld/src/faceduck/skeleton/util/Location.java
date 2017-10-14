@@ -123,4 +123,13 @@ public final class Location {
 			}
 		}
 	}
+
+	@Override
+    public boolean equals(Object other) {
+        if (other instanceof Location) {
+            Location otherLoc = (Location) other;
+            return x == otherLoc.x && y == otherLoc.y;
+        }
+        return false;
+    }
 }

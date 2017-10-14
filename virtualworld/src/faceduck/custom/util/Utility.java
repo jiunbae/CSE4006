@@ -4,8 +4,13 @@ import faceduck.skeleton.interfaces.*;
 import faceduck.skeleton.util.Direction;
 import faceduck.skeleton.util.Location;
 
+import javax.swing.text.View;
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.function.*;
+
+import static java.lang.Math.*;
 
 public class Utility {
     /**
@@ -36,6 +41,10 @@ public class Utility {
                 return dir;
         }
         return null;
+    }
+
+    public static boolean isInsideViewRange(int viewRange, Location from, Location to) {
+        return abs(from.getX() - to.getX()) <= viewRange && abs(from.getY() - to.getY()) <= viewRange;
     }
 
     /**
@@ -83,5 +92,15 @@ public class Utility {
         int height = map[0].length;
         if (!Utility.isValidLocation(x, y, width, height)) return 0;
         return map[x][y];
+    }
+
+    public static Color gradientColor(int value) {
+        if (value == 0) {
+            return new Color(0,0,0);
+        } else if(value < 0) {
+            return new Color(min((int) log(-value * 16) * 16, 255), 0, 0);
+        } else {
+            return new Color(0, 0, min((int) log(value * 16) * 16, 255));
+        }
     }
 }

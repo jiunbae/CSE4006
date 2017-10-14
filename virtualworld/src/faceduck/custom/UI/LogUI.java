@@ -1,6 +1,7 @@
-package faceduck.skeleton.util;
+package faceduck.custom.UI;
 
 import faceduck.custom.util.Actors;
+import faceduck.skeleton.util.Util;
 
 import javax.swing.*;
 
@@ -17,23 +18,10 @@ import static java.lang.Math.max;
  * Visual Log for dynamic logging of VirtualWorld
  */
 public class LogUI extends JPanel {
-
-    public class aLog {
-        int array[];
-        public aLog(int... args) {
-            array = args;
-        }
-        public int[] values() {
-            return array;
-        }
-    }
-
     private final int W = 300;
     private final int H = 500;
     private final int BORDER = 16;
     private final int MAX_VALUE = 196;
-    private final int HATCH_COUNT = 16;
-    private final int HATCH_WIDTH = 8;
     private final int X_SIZE = 64;
 
     private static final Stroke GRAPH_STROKE = new BasicStroke(.2f);
@@ -44,7 +32,7 @@ public class LogUI extends JPanel {
     private int generation = 0;
 
     public LogUI(Actors... actors) {
-        loggable = new HashSet();
+        loggable = new HashSet<>();
         colors = new HashMap<>();
         points = new HashMap<>();
 
@@ -74,6 +62,9 @@ public class LogUI extends JPanel {
 
     @Override
     public void paintComponent(Graphics g) {
+        final int HATCH_COUNT = 16;
+        final int HATCH_WIDTH = 8;
+
         super.paintComponent(g);
 
         Graphics2D g2 = (Graphics2D) g;
@@ -97,9 +88,9 @@ public class LogUI extends JPanel {
         // create hatch marks for x axis
         for (int i = 0; i < X_SIZE; i++) {
             int x = (i + 1) * (getWidth() - BORDER * 2) / X_SIZE + BORDER;
-            g2.drawLine(x, getHeight() - BORDER, x, getHeight() - BORDER - HATCH_WIDTH - ((i % 5 == 0) ? (10) : 0));
+            g2.drawLine(x, getHeight() - BORDER, x, getHeight() - BORDER - HATCH_WIDTH - ((i % 5 == 0) ? (BORDER) : 0));
             if (i % 5 == 0)
-                g2.drawString(Integer.toString((int) ((x - BORDER) / xScale)), x - (int) Math.log(x), getHeight() - BORDER + 10);
+                g2.drawString(Integer.toString((int) ((x - BORDER) / xScale) + max(0, generation - X_SIZE)), x - (int) Math.log(x), getHeight() - BORDER + 10);
         }
 
         Stroke oldStroke = g2.getStroke();

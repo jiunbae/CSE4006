@@ -367,8 +367,7 @@ public class WorldImpl implements World {
 		return true;
 	}
 
-    /**
-     * @Custom Improve
+    /** @Custom Improve
      *
      * @return generation from now one
      */

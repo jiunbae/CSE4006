@@ -2,12 +2,6 @@ package faceduck.actors;
 
 import faceduck.custom.Actionable;
 import faceduck.custom.util.*;
-import faceduck.skeleton.interfaces.Animal;
-import faceduck.skeleton.interfaces.Command;
-import faceduck.skeleton.interfaces.World;
-import faceduck.skeleton.util.Direction;
-import faceduck.skeleton.util.Location;
-import faceduck.skeleton.util.Util;
 
 /**
  * This is a simple implementation of a Gnat. It never loses energy and moves in

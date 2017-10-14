@@ -1,8 +1,8 @@
 package faceduck.skeleton.world;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.function.Consumer;
 
 import javax.swing.ImageIcon;
@@ -11,6 +11,12 @@ import javax.swing.JPanel;
 import faceduck.actors.Gardener;
 import faceduck.actors.Gnat;
 import faceduck.actors.Grass;
+import faceduck.custom.Actionable;
+import faceduck.custom.UI.AlphaImageIcon;
+import faceduck.custom.UI.SightMode;
+import faceduck.custom.util.Actors;
+import faceduck.custom.util.Utility;
+import faceduck.skeleton.interfaces.Animal;
 import faceduck.skeleton.interfaces.Fox;
 import faceduck.skeleton.interfaces.Rabbit;
 import faceduck.skeleton.interfaces.World;
@@ -26,6 +32,10 @@ public class WorldPanel extends JPanel implements Runnable {
 
     // @Custom Improve
     private Consumer<World> stepConsumer;
+    private Location prevLoc;
+    private Object target;
+    private SightMode mode;
+    // END
 
 	private final int IMAGE_SIZE = 40;
 	private final World world;
@@ -54,10 +64,30 @@ public class WorldPanel extends JPanel implements Runnable {
 		Dimension preferredSize = new Dimension(panelWidth, panelHeight);
 		this.setPreferredSize(preferredSize);
 		this.setBackground(Color.WHITE);
+
+		// @Custom Improve : provide {@link Animal}'s sight
+        prevLoc = new Location(-1, -1);
+		addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e){
+                Location loc = new Location(e.getX() / IMAGE_SIZE, e.getY() / IMAGE_SIZE);
+                if (!world.isValidLocation(loc)) return;
+
+                target = world.getThing(loc);
+                mode = (prevLoc.equals(loc)) ? mode.next() : SightMode.VIEWRANGE;
+
+                prevLoc = loc;
+
+                invalidate();
+                validate();
+                repaint();
+            }
+        });
 	}
 
-    /**
+    /** @Custom Improve
      * set stepConsumer for apply function every step.
+     *
      * @param consumer
      */
 	public void setStepConsumer(Consumer<World> consumer) {
@@ -92,6 +122,57 @@ public class WorldPanel extends JPanel implements Runnable {
 					unknownImage.paintIcon(this, g, x, y);
 				}
 			}
+
+            // @Custom Improve : draw sight view
+            switch (Actors.recognize(target)) {
+                // support sight animals
+                case RABBIT:
+                case FOX: {
+
+                    Graphics2D g2 = (Graphics2D) g;
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    switch (mode) {
+                        case VIEWRANGE:
+                            g2.setColor(new Color(0, 0, 0));
+
+                            for (int i = 0; i < world.getWidth(); ++i) {
+                                for (int j = 0; j < world.getHeight(); ++j) {
+                                    if (!Utility.isInsideViewRange(((Animal) target).getViewRange(), prevLoc, new Location(i, j))) {
+                                        g2.fillRect(i * IMAGE_SIZE, j * IMAGE_SIZE,
+                                                IMAGE_SIZE, IMAGE_SIZE);
+                                    }
+                                }
+                            }
+                            break;
+                        case WEIGHTS:
+                            for (int i = 0; i < world.getWidth(); ++i) {
+                                for (int j = 0; j < world.getHeight(); ++j) {
+                                    if (world.getThing(new Location(i, j)) == target) continue;
+                                    g2.setColor(Utility.gradientColor((int) ((Actionable) target).getMemory(i, j)));
+                                    g2.fillRect(i * IMAGE_SIZE, j * IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE);
+
+                                    g2.setColor(new Color(255, 255, 255));
+                                    g2.drawString(Integer.toString((int) ((Actionable) target).getMemory(i, j)),
+                                            i * IMAGE_SIZE + IMAGE_SIZE/4, j*IMAGE_SIZE + IMAGE_SIZE/2);
+                                }
+                            }
+                            break;
+                        case EVALUATED:
+                            for (int i = 0; i < world.getWidth(); ++i) {
+                                for (int j = 0; j < world.getHeight(); ++j) {
+                                    if (world.getThing(new Location(i, j)) == target) continue;
+                                    g2.setColor(Utility.gradientColor((int) ((Actionable) target).evaluate(prevLoc, new Location(i, j))));
+                                    g2.fillRect(i * IMAGE_SIZE, j * IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE);
+
+                                    g2.setColor(new Color(255, 255, 255));
+                                    g2.drawString(Integer.toString((int) ((Actionable) target).evaluate(prevLoc, new Location(i, j))),
+                                     i * IMAGE_SIZE + IMAGE_SIZE/4, j*IMAGE_SIZE + IMAGE_SIZE/2);
+                                }
+                            }
+                            break;
+                    }
+                }
+            }
 		}
 	}
 
@@ -101,6 +182,7 @@ public class WorldPanel extends JPanel implements Runnable {
 	 */
 	public boolean step() {
 		boolean ret = world.step();
+		// @Custom Improve
 		stepConsumer.accept(world);
 		repaint();
 		sleep();

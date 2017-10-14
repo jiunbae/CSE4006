@@ -10,9 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import static java.lang.Math.floor;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
+import static java.lang.Math.*;
 
 /**
  * Actionable is how can take action implements {@link Animal}
@@ -35,7 +33,6 @@ public abstract class Actionable implements Animal, Cloneable {
     private double[][] memory;
     private World world;
 
-    private Location prevLoc;
     private Location nowLoc;
 
     private int maxDistance;
@@ -52,7 +49,11 @@ public abstract class Actionable implements Animal, Cloneable {
      */
     @Override
     public void finalize() {
-        world.remove(this);
+        try {
+            world.remove(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -61,7 +62,7 @@ public abstract class Actionable implements Animal, Cloneable {
      * @param world
      *          The world you belong.
      */
-    protected void init(World world) {
+    private void init(World world) {
         if (initialized) return;
 
         width = world.getWidth();
@@ -72,8 +73,6 @@ public abstract class Actionable implements Animal, Cloneable {
         for (int i = 0; i < width; ++i)
             for (int j = 0; j < height; ++j)
                 memory[i][j] = 0;
-
-        prevLoc = world.getLocation(this);
 
         initialized = true;
     }
@@ -89,7 +88,7 @@ public abstract class Actionable implements Animal, Cloneable {
             throw new NullPointerException("World must not be null.");
 
         // propagation coolDown times, cuz think other moves during cool down.
-        for (int i = 0; i <= getCoolDown(); i++)
+        for (int i = 0; i <= getCoolDown() / 2; i++)
             propagation();
 
         // update memory, see world and arrange memory to right predict.
@@ -105,16 +104,16 @@ public abstract class Actionable implements Animal, Cloneable {
 
         // die if energy under 0
         if (energy <= 0 && energy != getMaxEnergy())
-            this.finalize();
+            world.remove(this);
     }
 
     /**
      * Add actor class to check edible
      *
-     * @param animal can it
+     * @param e can it
      */
-    protected void addEdible(Class<?> animal) {
-        edible.add(animal);
+    protected void addEdible(Class<?> e) {
+        edible.add(e);
     }
 
     /**
@@ -133,7 +132,7 @@ public abstract class Actionable implements Animal, Cloneable {
      * @return forget ratio
      */
     protected double forget() {
-        return 0.8;
+        return 0.7;
     }
 
     /**
@@ -144,16 +143,16 @@ public abstract class Actionable implements Animal, Cloneable {
      * @param to    Location to be evaluated
      * @return score of Location
      */
-    protected double evaluate(Location from, Location to) {
+    public double evaluate(Location from, Location to) {
         if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
 
-        double value = 0;
+        double value = Utility.getValue(memory, to.getX(), to.getY()) * 10;
         for (Direction dir : Direction.values()) {
             value += Utility.getValue(memory,
                     to.getX() + dir.getValue().getFirst(), to.getY() + dir.getValue().getSecond());
         }
 
-        return value * (maxDistance - from.distanceTo(to));
+        return value * log((maxDistance - from.distanceTo(to)) * 32) / 10;
     }
 
     /**
@@ -178,8 +177,6 @@ public abstract class Actionable implements Animal, Cloneable {
                         = judge(Actors.recognize(world.getThing(nextLoc)));
             }
         }
-
-        prevLoc = nowLoc;
     }
 
     /**
@@ -197,12 +194,16 @@ public abstract class Actionable implements Animal, Cloneable {
                     int y = dir.getValue().getSecond() + j;
                     if (!Utility.isValidLocation(x, y, width, height)) continue;
 
-                    newMemory[x][y] += (memory[i][j] / Direction.values().length) * forget();
+                    newMemory[x][y] += memory[i][j] / Direction.values().length * forget();
                 }
             }
         }
 
         memory = newMemory;
+    }
+
+    public double getMemory(int x, int y) {
+        return memory[x][y];
     }
 
     /**
@@ -234,7 +235,7 @@ public abstract class Actionable implements Animal, Cloneable {
      *
      * @return the best command
      */
-    protected Command decide() {
+    private Command decide() {
         List<Location> choices = new ArrayList<>();
         Location loc;
 
@@ -242,20 +243,20 @@ public abstract class Actionable implements Animal, Cloneable {
             loc = bestLocation(choices);
             Direction dir = nowLoc.dirTo(loc);
 
-            if (canAction(Action.BREED, nowLoc)) {
+            if (isPossible(Action.BREED, nowLoc)) {
                 dir = Utility.randomAdjacent(t ->
                         world.isValidLocation(Utility.destination(nowLoc, t)) &&
                         world.getThing(Utility.destination(nowLoc, t)) == null);
                 if (dir != null) return Action.BREED.command(dir);
             }
 
-            if (canAction(Action.EAT, Utility.destination(nowLoc, dir))) {
+            if (isPossible(Action.EAT, Utility.destination(nowLoc, dir))) {
                 return Action.EAT.command(dir);
-            } else if (canAction(Action.MOVE, Utility.destination(nowLoc, dir))) {
+            } else if (isPossible(Action.MOVE, Utility.destination(nowLoc, dir))) {
                 return Action.MOVE.command(dir);
             } else {
                 for (Direction to : Utility.workload(dir))
-                    if (canAction(Action.MOVE, Utility.destination(nowLoc, to)))
+                    if (isPossible(Action.MOVE, Utility.destination(nowLoc, to)))
                         return Action.MOVE.command(to);
             }
 
@@ -266,13 +267,12 @@ public abstract class Actionable implements Animal, Cloneable {
     }
 
     /**
-     * Determine if can take action.
-     * so, always can WAIT
-     *
-     * @param act
-     * @return true if can take action
+     * check the action is possible
+     * @param act to take
+     * @param loc to do action
+     * @return take action in location is possible
      */
-    protected boolean canAction(Action act, Location loc) {
+    private boolean isPossible(Action act, Location loc) {
         if (!world.isValidLocation(loc)) return false;
         Object obj = world.getThing(loc);
         switch(act) {
@@ -281,7 +281,7 @@ public abstract class Actionable implements Animal, Cloneable {
             case MOVE:
                 return obj == null;
             case EAT:
-                return obj instanceof Edible && edible.contains(obj.getClass());
+                return obj instanceof Edible && edible.stream().anyMatch(e -> e.isInstance(obj));
             case BREED:
                 return energy > this.getBreedLimit() && !Utility.isClosed(world, loc);
             default:

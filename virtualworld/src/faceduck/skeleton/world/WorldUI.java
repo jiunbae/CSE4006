@@ -10,7 +10,7 @@ import javax.swing.*;
 import faceduck.custom.util.Actors;
 import faceduck.custom.util.Pair;
 import faceduck.skeleton.interfaces.World;
-import faceduck.skeleton.util.LogUI;
+import faceduck.custom.UI.LogUI;
 
 /**
  * This class represents the GUI for the virtual world simulation.
@@ -30,8 +30,7 @@ public class WorldUI extends JPanel {
 	private final JButton run;
 
 	// @Custom Improve
-    private static JFrame logFrame;
-    private static LogUI vLog;
+    protected final LogUI vLog;
     private final HashMap<Actors, Pair<JLabel, JLabel>> labelList;
 
     private final JLabel genLabel;
@@ -63,7 +62,7 @@ public class WorldUI extends JPanel {
         // @Custom Improve
         vLog = new LogUI(Actors.FOX, Actors.RABBIT, Actors.GRASS, Actors.GNAT);
 
-        labelList = new HashMap();
+        labelList = new HashMap<>();
         vLog.forEachActors((Actors actor) -> {
             labelList.put(actor, new Pair<>(new JLabel(", " + actor.toString() + ": "), new JLabel("0")));
         });
@@ -85,14 +84,14 @@ public class WorldUI extends JPanel {
 
         worldPanel.setStepConsumer((World world) -> {
             genValue.setText(Integer.toString(world.getGeneration()));
-            labelList.forEach((actor, labels)-> {
-                labels.getSecond().setText(Integer.toString(world.getCount(actor)));
-            });
+            labelList.forEach((actor, labels) ->
+                labels.getSecond().setText(Integer.toString(world.getCount(actor)))
+            );
 
             vLog.log(world.getCount());
-            logFrame.invalidate();
-            logFrame.validate();
-            logFrame.repaint();
+            vLog.invalidate();
+            vLog.validate();
+            vLog.repaint();
         });
 
         bottom.add(information, FlowLayout.LEFT);
@@ -154,8 +153,8 @@ public class WorldUI extends JPanel {
 				f.setVisible(true);
 
 				// @Custom Improve
-                logFrame = new JFrame("Virtual World Log");
-                logFrame.add(vLog);
+                JFrame logFrame = new JFrame("Virtual World Log");
+                logFrame.add(gui.vLog);
                 logFrame.pack();
                 logFrame.setResizable(false);
                 logFrame.setVisible(true);

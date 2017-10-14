@@ -1,12 +1,9 @@
 package faceduck.actors;
 
-import com.sun.xml.internal.ws.api.config.management.Reconfigurable;
 import faceduck.custom.Actionable;
 import faceduck.custom.util.Actors;
 import faceduck.custom.util.Recognizable;
 import faceduck.skeleton.interfaces.*;
-import faceduck.skeleton.util.Direction;
-import faceduck.skeleton.util.Location;
 
 public class FoxImpl extends Actionable implements Fox {
 	private static final int FOX_MAX_ENERGY = 160;
@@ -17,7 +14,7 @@ public class FoxImpl extends Actionable implements Fox {
 
 	public FoxImpl() {
 		super(FOX_INITIAL_ENERGY);
-		addEdible(RabbitImpl.class);
+		addEdible(Rabbit.class);
 	}
 
 	@Override
