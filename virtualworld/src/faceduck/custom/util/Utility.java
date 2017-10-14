@@ -8,10 +8,6 @@ import java.util.*;
 import java.util.function.*;
 
 public class Utility {
-
-    // It's same seed Random object skeleton.util.Util.rand, cuz private;
-    public static final Random rand = new Random(2013);
-
     /**
      * check if can move
      * @param world
@@ -26,16 +22,6 @@ public class Utility {
                 return false;
         }
         return true;
-    }
-
-    /**
-     * check two object is adjacent
-     * @param lhs
-     * @param rhs
-     * @return true if lhs adjacent rhs
-     */
-    public static boolean isAdjacent(Location lhs, Location rhs) {
-        return lhs.distanceTo(rhs) == 1;
     }
 
     /**
@@ -58,56 +44,9 @@ public class Utility {
      * @return list of Direction
      */
     public static List<Direction> workload(Direction dir) {
-        List<Direction> ret = new ArrayList<>();
-
-        ret.add(dir);
-        ret.add(leftside(dir));
-        ret.add(rightside(dir));
-        ret.add(opside(dir));
+        List<Direction> ret = Arrays.asList(Direction.values());
 
         return ret;
-    }
-
-    public static Direction leftside(Direction dir) {
-        switch (dir) {
-            case NORTH:
-                return Direction.EAST;
-            case SOUTH:
-                return Direction.WEST;
-            case EAST:
-                return Direction.NORTH;
-            case WEST:
-                return Direction.SOUTH;
-        }
-        return null;
-    }
-
-    public static Direction rightside(Direction dir) {
-        switch (dir) {
-            case NORTH:
-                return Direction.WEST;
-            case SOUTH:
-                return Direction.EAST;
-            case EAST:
-                return Direction.SOUTH;
-            case WEST:
-                return Direction.NORTH;
-        }
-        return null;
-    }
-
-    public static Direction opside(Direction dir) {
-        switch (dir) {
-            case NORTH:
-                return Direction.SOUTH;
-            case SOUTH:
-                return Direction.NORTH;
-            case EAST:
-                return Direction.WEST;
-            case WEST:
-                return Direction.EAST;
-        }
-        return null;
     }
 
     /**
@@ -123,12 +62,7 @@ public class Utility {
     }
 
     public static Location destination(Location loc, Direction dir) {
-        Heading to = toHeading(dir);
-        return new Location(loc.getX() + to.getValue().getFirst(), loc.getY() + to.getValue().getSecond());
-    }
-
-    public static <T, U, R> Function<U, R> bind(BiFunction<T, U, R> f, T t) {
-        return u -> f.apply(t, u);
+        return new Location(loc.getX() + dir.getValue().getFirst(), loc.getY() + dir.getValue().getSecond());
     }
 
     public static <T> boolean contain(List<T> list, T item, BiFunction<T, T, Boolean> lambda) {
@@ -149,54 +83,5 @@ public class Utility {
         int height = map[0].length;
         if (!Utility.isValidLocation(x, y, width, height)) return 0;
         return map[x][y];
-    }
-
-    /**
-     * recognize object in world
-     * @param obj
-     * @return Object to Actors{FOX, RABBIT, GRASS, GNAT, GARDENER or EMPTY}
-     */
-    public static Actors recognize(Object obj) {
-        if (obj instanceof Actor) {
-            if (obj instanceof Fox) {
-                return Actors.FOX;
-            } else if (obj instanceof Rabbit) {
-                return Actors.RABBIT;
-            } else if (obj instanceof Animal) {
-                return Actors.GNAT;
-            } else {
-                return Actors.GARDENER;
-            }
-        } else if (obj instanceof Edible) {
-            return Actors.GRASS;
-        }
-        return Actors.EMPTY;
-    }
-
-    /**
-     * change pair to Location
-     * @param pair
-     * @return Location
-     */
-    public static Location toLocation(Pair<Integer, Integer> pair) {
-        return new Location(pair.getFirst(), pair.getSecond());
-    }
-
-    public static Pair<Integer, Integer> toPair(Location loc) {
-        return new Pair<>(loc.getX(), loc.getY());
-    }
-
-    public static Heading toHeading(Direction dir) {
-        switch (dir) {
-            case NORTH:
-                return Heading.UP;
-            case SOUTH:
-                return Heading.DOWN;
-            case EAST:
-                return Heading.RIGHT;
-            case WEST:
-                return Heading.LEFT;
-        }
-        return Heading.STAY;
     }
 }

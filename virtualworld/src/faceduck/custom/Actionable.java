@@ -4,6 +4,7 @@ import faceduck.custom.util.*;
 import faceduck.skeleton.interfaces.*;
 import faceduck.skeleton.util.Direction;
 import faceduck.skeleton.util.Location;
+import faceduck.skeleton.util.Util;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -42,8 +43,8 @@ public abstract class Actionable implements Animal, Cloneable {
     private int height;
     private int energy;
 
-    public Actionable() {
-        energy = getInitialEnergy();
+    public Actionable(int energy) {
+        this.energy = energy;
     }
 
     /**
@@ -124,7 +125,16 @@ public abstract class Actionable implements Animal, Cloneable {
      */
     protected abstract double judge(Actors actor);
 
-    protected abstract int getInitialEnergy();
+    /**
+     * The degree of confidence in what is seen is increasingly faint.
+     * Default 0.8 means that confidence decrease 20% every {@link #propagation()}.
+     * The lower the value, the more think about what is visible.
+     *
+     * @return forget ratio
+     */
+    protected double forget() {
+        return 0.8;
+    }
 
     /**
      * Evaluate an area, can override for custom evaluate function.
@@ -138,9 +148,9 @@ public abstract class Actionable implements Animal, Cloneable {
         if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
 
         double value = 0;
-        for (Heading head : Heading.values()) {
+        for (Direction dir : Direction.values()) {
             value += Utility.getValue(memory,
-                    to.getX() + head.getValue().getFirst(), to.getY() + head.getValue().getSecond());
+                    to.getX() + dir.getValue().getFirst(), to.getY() + dir.getValue().getSecond());
         }
 
         return value * (maxDistance - from.distanceTo(to));
@@ -162,12 +172,10 @@ public abstract class Actionable implements Animal, Cloneable {
         for (int i = 0; i < getViewRange() * 2 + 1; ++i) {
             for (int j = 0; j < getViewRange() * 2 +1; ++j) {
                 nextLoc = new Location(nowLoc.getX() + i - getViewRange(), nowLoc.getY() + j - getViewRange());
-                if (i == 0 && j == 0) continue;
-                if (!world.isValidLocation(nextLoc)) continue;
+                if ((i == 0 && j == 0) || !world.isValidLocation(nextLoc)) continue;
 
-                Object thing = world.getThing(nextLoc);
-                Actors recognized = Utility.recognize(thing);
-                memory[nowLoc.getX() + i - getViewRange()][nowLoc.getY() + j - getViewRange()] = judge(recognized);
+                memory[nowLoc.getX() + i - getViewRange()][nowLoc.getY() + j - getViewRange()]
+                        = judge(Actors.recognize(world.getThing(nextLoc)));
             }
         }
 
@@ -176,7 +184,7 @@ public abstract class Actionable implements Animal, Cloneable {
 
     /**
      * propagation memory, predict the following situation based on memory.
-     * Basically, everything moves 25% each {@link Heading}.
+     * Basically, everything moves 25% each {@link Direction}.
      */
     private void propagation() {
         double[][] newMemory = new double[width][height];
@@ -184,12 +192,12 @@ public abstract class Actionable implements Animal, Cloneable {
             for (int j = 0; j < height; ++j) {
                 if (memory[i][j] == 0) continue;
 
-                for (Heading head : Heading.values()) {
-                    int x = head.getValue().getFirst() + i;
-                    int y = head.getValue().getSecond() + j;
+                for (Direction dir : Direction.values()) {
+                    int x = dir.getValue().getFirst() + i;
+                    int y = dir.getValue().getSecond() + j;
                     if (!Utility.isValidLocation(x, y, width, height)) continue;
 
-                    newMemory[x][y] += memory[i][j] / Heading.values().length;
+                    newMemory[x][y] += (memory[i][j] / Direction.values().length) * forget();
                 }
             }
         }
@@ -205,7 +213,7 @@ public abstract class Actionable implements Animal, Cloneable {
      * @return maximum value in memory(where you want to go)
      */
     private Location bestLocation(List<Location> preChoices) {
-        Location result = new Location(Utility.rand.nextInt(width), Utility.rand.nextInt(height));
+        Location result = new Location(Util.rand.nextInt(width), Util.rand.nextInt(height));
         for (int i = 0; i < width; ++i) {
             for (int j = 0; j < height; ++j) {
                 Location next = new Location(i, j);
@@ -220,7 +228,6 @@ public abstract class Actionable implements Animal, Cloneable {
         preChoices.add(result);
         return result;
     }
-
 
     /**
      * Return best choice to next move.
@@ -266,6 +273,7 @@ public abstract class Actionable implements Animal, Cloneable {
      * @return true if can take action
      */
     protected boolean canAction(Action act, Location loc) {
+        if (!world.isValidLocation(loc)) return false;
         Object obj = world.getThing(loc);
         switch(act) {
             case WAIT:
@@ -310,6 +318,11 @@ public abstract class Actionable implements Animal, Cloneable {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public int getEnergy() {
+        return energy;
     }
 
     /**

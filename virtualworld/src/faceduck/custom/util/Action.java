@@ -4,7 +4,6 @@ import faceduck.commands.BreedCommand;
 import faceduck.commands.EatCommand;
 import faceduck.commands.MoveCommand;
 import faceduck.commands.WaitCommand;
-import faceduck.custom.Actionable;
 import faceduck.skeleton.interfaces.Command;
 import faceduck.skeleton.util.Direction;
 
@@ -28,7 +27,8 @@ public enum Action {
                 return new MoveCommand(dir);
             case WAIT:
                 return new WaitCommand(dir);
+            default:
+                return null;
         }
-        return null;
     }
 }

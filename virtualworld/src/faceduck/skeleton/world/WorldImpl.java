@@ -223,7 +223,7 @@ public class WorldImpl implements World {
 		// }
 
         // @Custom Improve
-        Actors actors = Utility.recognize(newThing);
+        Actors actors = Actors.recognize(newThing);
 		counts.put(actors, counts.get(actors) + 1);
 		// END
 	}
@@ -277,7 +277,7 @@ public class WorldImpl implements World {
 		// }
 
         // @Custom Improve
-        Actors actors = Utility.recognize(oldThing);
+        Actors actors = Actors.recognize(oldThing);
         counts.put(actors, counts.get(actors) - 1);
         // END
 	}

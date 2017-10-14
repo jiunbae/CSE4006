@@ -20,13 +20,8 @@ public class Gnat extends Actionable {
 	private static final int COOL_DOWN = 0;
 
 	public Gnat(int size) {
-        super();
+        super(0);
     }
-
-    @Override
-    public int getInitialEnergy() {
-	    return 0;
-	}
 
 	@Override
 	public int getMaxEnergy() {
@@ -50,7 +45,15 @@ public class Gnat extends Actionable {
 
     @Override
     protected double judge(Actors actor) {
-	    if (actor == Actors.EMPTY) return Recognizable.EMPTY.getValue();
-        return Recognizable.IRRELEVANT.getValue();
+	    switch (actor) {
+            case GRASS:
+            case GNAT:
+            case RABBIT:
+            case FOX:
+            case GARDENER:
+            case EMPTY:
+            default:
+                return Recognizable.IRRELEVANT.getValue();
+        }
     }
 }

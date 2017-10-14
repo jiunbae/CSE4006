@@ -16,13 +16,8 @@ public class FoxImpl extends Actionable implements Fox {
 	private static final int FOX_INITIAL_ENERGY = FOX_MAX_ENERGY * 1 / 2;
 
 	public FoxImpl() {
-		super();
+		super(FOX_INITIAL_ENERGY);
 		addEdible(RabbitImpl.class);
-	}
-
-	@Override
-	public int getInitialEnergy() {
-		return FOX_INITIAL_ENERGY;
 	}
 
 	@Override
@@ -48,17 +43,18 @@ public class FoxImpl extends Actionable implements Fox {
 	@Override
 	protected double judge(Actors actor) {
 		switch (actor) {
+            case RABBIT:
+                return Recognizable.EDIBLE.getValue();
+            case FOX:
+                return Recognizable.COGNATION.getValue();
 			case GRASS:
 				return Recognizable.IRRELEVANT.getValue();
 			case GNAT:
 				return Recognizable.IRRELEVANT.getValue();
-			case RABBIT:
-				return Recognizable.EDIBLE.getValue();
-			case FOX:
-				return Recognizable.IRRELEVANT.getValue();
 			case GARDENER:
 				return Recognizable.IRRELEVANT.getValue();
+            default:
+                return Recognizable.IRRELEVANT.getValue();
 		}
-        return Recognizable.EMPTY.getValue();
 	}
 }

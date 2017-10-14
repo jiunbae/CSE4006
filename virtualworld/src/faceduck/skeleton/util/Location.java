@@ -46,26 +46,32 @@ public final class Location {
 			throw new NullPointerException("Direction cannot be null");
 		}
 
+		/*
 		switch (dir) {
-		case NORTH:
-			this.x = loc.x;
-			this.y = loc.y - 1;
-			return;
-		case SOUTH:
-			this.x = loc.x;
-			this.y = loc.y + 1;
-			return;
-		case EAST:
-			this.x = loc.x + 1;
-			this.y = loc.y;
-			return;
-		case WEST:
-			this.x = loc.x - 1;
-			this.y = loc.y;
-			return;
-		}
+			case NORTH:
+				this.x = loc.x;
+				this.y = loc.y - 1;
+				return;
+			case SOUTH:
+				this.x = loc.x;
+				this.y = loc.y + 1;
+				return;
+			case EAST:
+				this.x = loc.x + 1;
+				this.y = loc.y;
+				return;
+			case WEST:
+				this.x = loc.x - 1;
+				this.y = loc.y;
+				return;
+		}*/
 
-		throw new RuntimeException("Impossible to get here.");
+		// @Custom Improve : replace above code to below
+		this.x = loc.x + dir.getValue().getFirst();
+		this.y = loc.y + dir.getValue().getSecond();
+		// END
+
+		//throw new RuntimeException("Impossible to get here.");
 	}
 
 	/**
