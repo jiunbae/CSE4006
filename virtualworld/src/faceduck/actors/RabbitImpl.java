@@ -10,7 +10,7 @@ import static java.lang.Math.log;
 public class RabbitImpl extends Actionable implements Rabbit {
 	private static final int RABBIT_MAX_ENERGY = 20;
 	private static final int RABBIT_VIEW_RANGE = 3;
-	private static final int RABBIT_BREED_LIMIT = RABBIT_MAX_ENERGY * 2 / 4;
+	private static final int RABBIT_BREED_LIMIT = RABBIT_MAX_ENERGY * 3 / 4;
 	private static final int RABBIT_ENERGY_VALUE = 20;
 	private static final int RABBIT_COOL_DOWN = 4;
 	private static final int RABBIT_INITIAL_ENERGY = RABBIT_MAX_ENERGY * 1 / 2;
@@ -54,11 +54,11 @@ public class RabbitImpl extends Actionable implements Rabbit {
     protected double judge(Actors actor) {
 	    switch (actor) {
             case GRASS:
-                return Recognizable.EDIBLE.getValue() * log((getMaxEnergy() - getEnergy()) * 5) * .5f;
+                return Recognizable.EDIBLE.getValue() * log((getMaxEnergy() - getEnergy()) * 3) * .8f;
             case RABBIT:
-                return Recognizable.COGNATION.getValue();
+                return Recognizable.COGNATION.getValue() + 20;
             case FOX:
-                return Recognizable.NEMESIS.getValue();
+                return Recognizable.NEMESIS.getValue() * 20;
             case GNAT:
                 return Recognizable.IRRELEVANT.getValue();
             case GARDENER:

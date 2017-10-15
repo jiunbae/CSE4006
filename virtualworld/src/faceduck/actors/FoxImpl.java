@@ -5,6 +5,8 @@ import faceduck.custom.util.Actors;
 import faceduck.custom.util.Recognizable;
 import faceduck.skeleton.interfaces.*;
 
+import static java.lang.Math.log;
+
 public class FoxImpl extends Actionable implements Fox {
 	private static final int FOX_MAX_ENERGY = 160;
 	private static final int FOX_VIEW_RANGE = 5;
@@ -46,7 +48,7 @@ public class FoxImpl extends Actionable implements Fox {
 	protected double judge(Actors actor) {
 		switch (actor) {
             case RABBIT:
-                return Recognizable.EDIBLE.getValue();
+                return Recognizable.EDIBLE.getValue() * log((getMaxEnergy() - getEnergy()) * 10) * .7f;
             case FOX:
                 return Recognizable.COGNATION.getValue();
 			case GRASS:

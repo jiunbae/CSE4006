@@ -34,6 +34,7 @@ public abstract class Actionable implements Animal, Cloneable {
     private World world;
 
     private Location nowLoc;
+    private Location preLoc;
 
     private int maxDistance;
     private int width;
@@ -68,6 +69,7 @@ public abstract class Actionable implements Animal, Cloneable {
         width = world.getWidth();
         height = world.getHeight();
         maxDistance = new Location(0, 0).distanceTo(new Location(width, height));
+        preLoc = world.getLocation(this);
 
         memory = new double[width][height];
         for (int i = 0; i < width; ++i)
@@ -87,6 +89,9 @@ public abstract class Actionable implements Animal, Cloneable {
         if (world == null)
             throw new NullPointerException("World must not be null.");
 
+        init(world);
+
+        nowLoc = world.getLocation(this);
         // propagation coolDown times, cuz think other moves during cool down.
         for (int i = 0; i <= getCoolDown() / 2; i++)
             propagation();
@@ -97,6 +102,7 @@ public abstract class Actionable implements Animal, Cloneable {
         // get best choice
         Command cmd = decide();
         cmd.execute(world, this);
+        preLoc = nowLoc;
 
         // do something(even if wait) is take energy.
         energy -= 1;
@@ -135,6 +141,21 @@ public abstract class Actionable implements Animal, Cloneable {
         return 0.7;
     }
 
+    private double evalute(Location from, Location to, int depth) {
+        if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
+
+        if (depth == 0) {
+            if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
+            return memory[to.getX()][to.getY()];
+        } else {
+            double sum = 0;
+            for (Direction dir : Direction.values()) {
+                sum += evalute(from, to, depth - 1);
+            }
+            return sum / Direction.values().length;
+        }
+    }
+
     /**
      * Evaluate an area, can override for custom evaluate function.
      * Default value is sum of the places next to {@link Location} and multiple reciprocal of distance.
@@ -146,13 +167,14 @@ public abstract class Actionable implements Animal, Cloneable {
     public double evaluate(Location from, Location to) {
         if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
 
-        double value = Utility.getValue(memory, to.getX(), to.getY()) * 10;
-        for (Direction dir : Direction.values()) {
-            value += Utility.getValue(memory,
-                    to.getX() + dir.getValue().getFirst(), to.getY() + dir.getValue().getSecond());
-        }
-
-        return value * log((maxDistance - from.distanceTo(to)) * 32) / 10;
+//        double value = Utility.getValue(memory, to.getX(), to.getY()) * 10;
+//        for (Direction dir : Direction.values()) {
+//            value += Utility.getValue(memory,
+//                    to.getX() + dir.getValue().getFirst(), to.getY() + dir.getValue().getSecond());
+//        }
+//
+//        return (value * log((maxDistance - from.distanceTo(to)) * 16) / 5) / 5;
+        return evalute(from, to, 3) * log((maxDistance - from.distanceTo(to)) * 16) / 5;
     }
 
     /**
@@ -162,10 +184,7 @@ public abstract class Actionable implements Animal, Cloneable {
      * @param world to seen
      */
     private void behold(World world) {
-        init(world);
         this.world = world;
-
-        nowLoc = world.getLocation(this);
         Location nextLoc;
 
         for (int i = 0; i < getViewRange() * 2 + 1; ++i) {
@@ -199,6 +218,7 @@ public abstract class Actionable implements Animal, Cloneable {
             }
         }
 
+        newMemory[preLoc.getX()][preLoc.getY()] /= 2;
         memory = newMemory;
     }
 
@@ -243,13 +263,22 @@ public abstract class Actionable implements Animal, Cloneable {
             loc = bestLocation(choices);
             Direction dir = nowLoc.dirTo(loc);
 
-            if (isPossible(Action.BREED, nowLoc) && Util.getRandom().nextBoolean()) {
+            // First of all, check you can breed.
+            // Breed is most a intense instinct
+
+            // Breed require 3 thing belows.
+            // 1. Energy > breedLimit
+            // 2. At least one empty space beside
+            // 3. Probability of breeding increases with the amount of energy (limit: 25% to max: 100%)
+            double breedProbability = (100 - (getMaxEnergy() - getEnergy()) * (25.f / getEnergy())) / 100.f;
+            if (isPossible(Action.BREED, nowLoc) && Util.getRandom().nextFloat() < breedProbability) {
                 dir = Utility.randomAdjacent(t ->
                         world.isValidLocation(Utility.destination(nowLoc, t)) &&
                         world.getThing(Utility.destination(nowLoc, t)) == null);
                 if (dir != null) return Action.BREED.command(dir);
             }
 
+            //
             if (isPossible(Action.EAT, Utility.destination(nowLoc, dir))) {
                 return Action.EAT.command(dir);
             } else if (isPossible(Action.MOVE, Utility.destination(nowLoc, dir))) {
