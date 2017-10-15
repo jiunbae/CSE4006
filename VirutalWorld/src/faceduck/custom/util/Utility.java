@@ -44,6 +44,7 @@ public class Utility {
     }
 
     public static boolean isInsideViewRange(int viewRange, Location from, Location to) {
+        if (from == null || to == null) return false;
         return abs(from.getX() - to.getX()) <= viewRange && abs(from.getY() - to.getY()) <= viewRange;
     }
 

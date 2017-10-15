@@ -8,7 +8,7 @@ public enum Actors {
     // Original Classes
     GRASS("Grass"), GNAT("Gnat"), RABBIT("Rabbit"), FOX("Fox"), GARDENER("Gardener"),
     // Custom Classes
-    BEAR("BearImpl"), HUNTER("HunterImpl");
+    BEAR("Bear"), HUNTER("Hunter");
 
     private final String name;
 

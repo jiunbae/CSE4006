@@ -6,6 +6,7 @@ public class Information {
     private int eat;
     private int move;
     private int child;
+    private int energy;
 
     public Information(int born) {
         this.born = born;
@@ -28,15 +29,19 @@ public class Information {
         eat += 1;
     }
 
+    public void writeEnergy(int value) {
+        energy = value;
+    }
+
     public int getGeneration() {
         return born + age;
     }
 
     public static final String[] getLabels() {
-        return new String[]{"born", "age", "eat", "move", "child"};
+        return new String[]{"born", "age", "eat", "move", "child", "energy"};
     }
 
     public int[] getValues() {
-        return new int[]{born, age, eat, move, child};
+        return new int[]{born, age, eat, move, child, energy};
     }
 }

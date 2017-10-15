@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import static java.lang.Math.*;
 
@@ -94,6 +92,13 @@ public abstract class Actionable implements Animal, Cloneable {
     /**
      * Must super before act, You must see and judge before you act on something.
      *
+     * 1. First of all, {@link #init(World)} if not initialized
+     * 2. {@link #propagation()} coolDown / 2 times
+     * 3. {@link #behold(World)} to update memory
+     * 4. Find out what to do next, by {@link #decide()}, it re-called in {@link AI}
+     * 5. Update {@link #energy}
+     * 6. Done
+     *
      * @param world actor is currently in.
      */
     @Override
@@ -121,11 +126,159 @@ public abstract class Actionable implements Animal, Cloneable {
         energy -= 1;
         energy = max(0, energy);
         info.older(getCoolDown());
+        info.writeEnergy(energy);
 
         // die if energy under 0
         if (energy <= 0 && energy != getMaxEnergy())
             world.remove(this);
     }
+
+    /**
+     * propagation memory, predict the following situation based on memory.
+     * Basically, everything moves 25% each {@link Direction}.
+     */
+    private void propagation() {
+        double[][] newMemory = new double[width][height];
+        for (int i = 0; i < width; ++i) {
+            for (int j = 0; j < height; ++j) {
+                if (memory[i][j] == 0) continue;
+
+                for (Direction dir : Direction.values()) {
+                    int x = dir.getValue().getFirst() + i;
+                    int y = dir.getValue().getSecond() + j;
+                    if (!Utility.isValidLocation(x, y, width, height)) continue;
+
+                    newMemory[x][y] += memory[i][j] / Direction.values().length * getForgetfulness();
+                }
+            }
+        }
+
+        // Avoid going past way little
+        newMemory[preLoc.getX()][preLoc.getY()] -= abs(newMemory[preLoc.getX()][preLoc.getY()] / 2);
+        memory = newMemory;
+    }
+
+    /**
+     * Behold world, save what you see in memory.
+     * Can see only as much as your {@link #getViewRange()}
+     *
+     * @param world to seen
+     */
+    private void behold(World world) {
+        this.world = world;
+        Location nextLoc;
+
+        for (int i = 0; i < getViewRange() * 2 + 1; ++i) {
+            for (int j = 0; j < getViewRange() * 2 +1; ++j) {
+                nextLoc = new Location(nowLoc.getX() + i - getViewRange(), nowLoc.getY() + j - getViewRange());
+                if ((i == 0 && j == 0) || !world.isValidLocation(nextLoc)) continue;
+
+                memory[nowLoc.getX() + i - getViewRange()][nowLoc.getY() + j - getViewRange()]
+                        = judge(Actors.recognize(world.getThing(nextLoc)));
+            }
+        }
+    }
+
+    /**
+     * Return best choice to next move.
+     *
+     * @return the best command
+     */
+    public Command decide() {
+        List<Location> choices = new ArrayList<>();
+        Location loc;
+
+        do {
+            loc = destination(choices);
+            Direction dir = nowLoc.dirTo(loc);
+            Location dest = Utility.destination(nowLoc, dir);
+            if (!world.isValidLocation(loc) || !world.isValidLocation(dest)) continue;
+
+            // First of all, check you can breed.
+            // Breed is most a intense instinct
+
+            // Breed require 3 thing belows.
+            // 1. Energy > breedLimit
+            // 2. At least one empty space beside
+            // 3. Probability of breeding increases with the amount of energy (limit: 25% to max: 100%)
+            double breedProbability = (100 - (getMaxEnergy() - getEnergy()) * (25.f / getEnergy())) / 100.f;
+            if (isPossible(Action.BREED, nowLoc) && Util.getRandom().nextFloat() < breedProbability) {
+                dir = Utility.randomAdjacent(t ->
+                        world.isValidLocation(Utility.destination(nowLoc, t)) &&
+                                world.getThing(Utility.destination(nowLoc, t)) == null);
+                if (dir != null) return Action.BREED.command(dir);
+            }
+
+            if (isPossible(Action.EAT, dest)) {
+                return Action.EAT.command(dir);
+            } else if (isPossible(Action.MOVE, dest)) {
+                return Action.MOVE.command(dir);
+            } else {
+                for (Direction to : Utility.workload(dir)) {
+                    Location d = Utility.destination(nowLoc, to);
+                    if (!world.isValidLocation(d)) continue;
+                    if (isPossible(Action.MOVE, d))
+                        return Action.MOVE.command(to);
+                }
+            }
+
+            if (Utility.isClosed(world, nowLoc)) {
+                return Action.WAIT.command(null);
+            }
+        } while (true);
+    }
+
+    /**
+     * Best location where to go, evaluate with the {@link #evaluate(Location, Location)}.
+     * You can override {@link #evaluate(Location, Location)} to make custom evaluate function.
+     *
+     * @param preChoices prevent duplicate choice
+     * @return maximum value in memory(where you want to go)
+     */
+    private Location destination(List<Location> preChoices) {
+        Location result = new Location(Util.getRandom().nextInt(width), Util.getRandom().nextInt(height));
+        for (int i = 0; i < width; ++i) {
+            for (int j = 0; j < height; ++j) {
+                Location next = new Location(i, j);
+                if (Utility.contain(preChoices, next, (final Location lhs, final Location rhs) ->
+                        lhs.getX() == rhs.getX() && lhs.getY() == rhs.getY()
+                )) continue;
+                if (evaluate(nowLoc, next) > evaluate(nowLoc, result))
+                    result = next;
+            }
+        }
+
+        preChoices.add(result);
+        return result;
+    }
+
+    /**
+     * Evaluate an area, can override for custom evaluate function.
+     * Default value is sum of the places next to {@link Location} and multiple reciprocal of distance.
+     *
+     * @param from  now Location
+     * @param to    Location to be evaluated
+     * @return score of Location
+     */
+    public double evaluate(Location from, Location to) {
+        if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
+        return evaluate(from, to, getViewRange() / 2) * log((maxDistance - from.distanceTo(to)) * 16) / 5;
+    }
+    private double evaluate(Location from, Location to, int depth) {
+        if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
+
+        if (depth == 0) {
+            if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
+            return memory[to.getX()][to.getY()];
+        } else {
+            double sum = 0;
+            for (Direction dir : Direction.values()) {
+                sum += evaluate(from, Utility.destination(to, dir), depth - 1);
+            }
+            return sum / Direction.values().length * (maxDistance - from.distanceTo(to)) / maxDistance;
+        }
+    }
+
 
     /**
      * Add actor class to check edible
@@ -152,79 +305,6 @@ public abstract class Actionable implements Animal, Cloneable {
      */
     protected abstract double getForgetfulness();
 
-    private double evaluate(Location from, Location to, int depth) {
-        if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
-
-        if (depth == 0) {
-            if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
-            return memory[to.getX()][to.getY()];
-        } else {
-            double sum = 0;
-            for (Direction dir : Direction.values()) {
-                sum += evaluate(from, Utility.destination(to, dir), depth - 1);
-            }
-            return sum / Direction.values().length;
-        }
-    }
-
-    /**
-     * Evaluate an area, can override for custom evaluate function.
-     * Default value is sum of the places next to {@link Location} and multiple reciprocal of distance.
-     *
-     * @param from  now Location
-     * @param to    Location to be evaluated
-     * @return score of Location
-     */
-    public double evaluate(Location from, Location to) {
-        if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
-        return evaluate(from, to, getViewRange() / 2) * log((maxDistance - from.distanceTo(to)) * 16) / 5;
-    }
-
-    /**
-     * Behold world, save what you see in memory.
-     * Can see only as much as your {@link #getViewRange()}
-     *
-     * @param world to seen
-     */
-    private void behold(World world) {
-        this.world = world;
-        Location nextLoc;
-
-        for (int i = 0; i < getViewRange() * 2 + 1; ++i) {
-            for (int j = 0; j < getViewRange() * 2 +1; ++j) {
-                nextLoc = new Location(nowLoc.getX() + i - getViewRange(), nowLoc.getY() + j - getViewRange());
-                if ((i == 0 && j == 0) || !world.isValidLocation(nextLoc)) continue;
-
-                memory[nowLoc.getX() + i - getViewRange()][nowLoc.getY() + j - getViewRange()]
-                        = judge(Actors.recognize(world.getThing(nextLoc)));
-            }
-        }
-    }
-
-    /**
-     * propagation memory, predict the following situation based on memory.
-     * Basically, everything moves 25% each {@link Direction}.
-     */
-    private void propagation() {
-        double[][] newMemory = new double[width][height];
-        for (int i = 0; i < width; ++i) {
-            for (int j = 0; j < height; ++j) {
-                if (memory[i][j] == 0) continue;
-
-                for (Direction dir : Direction.values()) {
-                    int x = dir.getValue().getFirst() + i;
-                    int y = dir.getValue().getSecond() + j;
-                    if (!Utility.isValidLocation(x, y, width, height)) continue;
-
-                    newMemory[x][y] += memory[i][j] / Direction.values().length * getForgetfulness();
-                }
-            }
-        }
-
-        newMemory[preLoc.getX()][preLoc.getY()] /= 2;
-        memory = newMemory;
-    }
-
     /**
      * Support forEach loop to iterate memory
      *
@@ -240,76 +320,12 @@ public abstract class Actionable implements Animal, Cloneable {
     }
 
     /**
-     * Best location where to go, evaluate with the {@link #evaluate(Location, Location)}.
-     * You can override {@link #evaluate(Location, Location)} to make custom evaluate function.
-     *
-     * @param preChoices prevent duplicate choice
-     * @return maximum value in memory(where you want to go)
+     * return {@link Information} of {@link Actionable}
+     * @return
      */
-    private Location bestLocation(List<Location> preChoices) {
-        Location result = new Location(Util.getRandom().nextInt(width), Util.getRandom().nextInt(height));
-        for (int i = 0; i < width; ++i) {
-            for (int j = 0; j < height; ++j) {
-                Location next = new Location(i, j);
-                if (Utility.contain(preChoices, next, (final Location lhs, final Location rhs) ->
-                    lhs.getX() == rhs.getX() && lhs.getY() == rhs.getY()
-                )) continue;
-                if (evaluate(nowLoc, next) > evaluate(nowLoc, result))
-                    result = next;
-            }
-        }
-
-        preChoices.add(result);
-        return result;
-    }
-
-    /**
-     * Return best choice to next move.
-     *
-     * @return the best command
-     */
-    public Command decide() {
-        List<Location> choices = new ArrayList<>();
-        Location loc;
-
-        do {
-            loc = bestLocation(choices);
-            Direction dir = nowLoc.dirTo(loc);
-            Location dest = Utility.destination(nowLoc, dir);
-            if (!world.isValidLocation(loc) || !world.isValidLocation(dest)) continue;
-
-            // First of all, check you can breed.
-            // Breed is most a intense instinct
-
-            // Breed require 3 thing belows.
-            // 1. Energy > breedLimit
-            // 2. At least one empty space beside
-            // 3. Probability of breeding increases with the amount of energy (limit: 25% to max: 100%)
-            double breedProbability = (100 - (getMaxEnergy() - getEnergy()) * (25.f / getEnergy())) / 100.f;
-            if (isPossible(Action.BREED, nowLoc) && Util.getRandom().nextFloat() < breedProbability) {
-                dir = Utility.randomAdjacent(t ->
-                        world.isValidLocation(Utility.destination(nowLoc, t)) &&
-                        world.getThing(Utility.destination(nowLoc, t)) == null);
-                if (dir != null) return Action.BREED.command(dir);
-            }
-
-            if (isPossible(Action.EAT, dest)) {
-                return Action.EAT.command(dir);
-            } else if (isPossible(Action.MOVE, dest)) {
-                return Action.MOVE.command(dir);
-            } else {
-                for (Direction to : Utility.workload(dir)) {
-                    Location d = Utility.destination(nowLoc, to);
-                    if (!world.isValidLocation(d)) continue;
-                    if (isPossible(Action.MOVE, d))
-                        return Action.MOVE.command(to);
-                }
-            }
-
-            if (Utility.isClosed(world, nowLoc)) {
-                return Action.WAIT.command(null);
-            }
-        } while (true);
+    public int[] getInformation() {
+        if (info == null) return null;
+        return info.getValues();
     }
 
     /**
@@ -344,36 +360,9 @@ public abstract class Actionable implements Animal, Cloneable {
         energy = min(energy, getMaxEnergy());
     }
 
-    /**
-     * Make clone, override Cloneable. Child objects take half of energy.
-     * Not able to use the constructor method because forced to not use <code>java.reflect</code> in the manual.
-     *
-     * @return clone of this instance.
-     */
-    @Override
-    public Actionable clone() {
-        energy = (int) floor(energy / 2);
-        final Actionable clone;
-        try {
-            clone = (Actionable) super.clone();
-            clone.energy = this.energy;
-            clone.initialized = false;
-            clone.info = new Information(info.getGeneration());
-            return clone;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     @Override
     public int getEnergy() {
         return energy;
-    }
-
-    public int[] getInformation() {
-        if (info == null) return null;
-        return info.getValues();
     }
 
     /**
@@ -438,5 +427,28 @@ public abstract class Actionable implements Animal, Cloneable {
             e.printStackTrace();
         }
         info.writeBreed();
+    }
+
+
+    /**
+     * Make clone, override Cloneable. Child objects take half of energy.
+     * Not able to use the constructor method because forced to not use <code>java.reflect</code> in the manual.
+     *
+     * @return clone of this instance.
+     */
+    @Override
+    public Actionable clone() {
+        energy = (int) floor(energy / 2);
+        final Actionable clone;
+        try {
+            clone = (Actionable) super.clone();
+            clone.energy = this.energy;
+            clone.initialized = false;
+            clone.info = new Information(info.getGeneration());
+            return clone;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

@@ -6,14 +6,13 @@ import faceduck.custom.util.Actors;
 import faceduck.custom.util.Recognizable;
 import faceduck.skeleton.interfaces.*;
 
-import static java.lang.Math.log;
 import static java.lang.Math.max;
 import static java.lang.Math.pow;
 
 public class FoxImpl extends Actionable implements Fox, Edible {
 	private static final int FOX_MAX_ENERGY = 120;
 	private static final int FOX_VIEW_RANGE = 5;
-	private static final int FOX_BREED_LIMIT = FOX_MAX_ENERGY * 3 / 4;
+	private static final int FOX_BREED_LIMIT = FOX_MAX_ENERGY * 3 / 5;
 	public static final int FOX_ENERGY_VALUE = 80;
 	private static final int FOX_COOL_DOWN = 3;
 	private static final int FOX_INITIAL_ENERGY = FOX_MAX_ENERGY * 1 / 2;

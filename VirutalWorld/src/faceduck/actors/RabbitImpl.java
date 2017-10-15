@@ -12,7 +12,7 @@ import static java.lang.Math.*;
 public class RabbitImpl extends Actionable implements Rabbit, Edible {
 	private static final int RABBIT_MAX_ENERGY = 20;
     private static final int RABBIT_VIEW_RANGE = 3;
-    private static final int RABBIT_BREED_LIMIT = RABBIT_MAX_ENERGY * 3 / 4;
+    private static final int RABBIT_BREED_LIMIT = RABBIT_MAX_ENERGY * 5 / 6;
     public static final int RABBIT_ENERGY_VALUE = 20;
     private static final int RABBIT_COOL_DOWN = 2;
     private static final int RABBIT_INITIAL_ENERGY = RABBIT_MAX_ENERGY * 1 / 2;
