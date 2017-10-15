@@ -13,9 +13,9 @@ public class FoxImpl extends Actionable implements Fox, Edible {
 	private static final int FOX_MAX_ENERGY = 120;
 	private static final int FOX_VIEW_RANGE = 5;
 	private static final int FOX_BREED_LIMIT = FOX_MAX_ENERGY * 3 / 5;
-	public static final int FOX_ENERGY_VALUE = 80;
+    protected static final int FOX_ENERGY_VALUE = 80;
 	private static final int FOX_COOL_DOWN = 3;
-	private static final int FOX_INITIAL_ENERGY = FOX_MAX_ENERGY * 1 / 2;
+	private static final int FOX_INITIAL_ENERGY = FOX_MAX_ENERGY / 2;
 	private static final double FOX_FORGETFULNESS = .6f;
 
 	public FoxImpl() {
@@ -28,16 +28,30 @@ public class FoxImpl extends Actionable implements Fox, Edible {
 		return FOX_MAX_ENERGY;
 	}
 
+    /**
+     * Fox breed sometimes
+     *
+     * @return breedLimit
+     */
 	@Override
 	public int getBreedLimit() {
 		return FOX_BREED_LIMIT;
 	}
 
+    /**
+     * Fox can be seen far away.
+     *
+     * @return viewRange()
+     */
 	@Override
 	public int getViewRange() {
 		return FOX_VIEW_RANGE;
 	}
 
+    /**
+     * Fox is fast.
+     * @return coolDown
+     */
 	@Override
 	public int getCoolDown() {
 		return FOX_COOL_DOWN;
@@ -47,6 +61,7 @@ public class FoxImpl extends Actionable implements Fox, Edible {
     public int getEnergyValue() {
         return FOX_ENERGY_VALUE;
     }
+
 	/**
 	 * It represents the extent to which the fox can not remember.
      * Bigger the value, better the memory.

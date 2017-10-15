@@ -38,7 +38,7 @@ public abstract class Actionable implements Animal, Cloneable {
     private Location nowLoc;
     private Location preLoc;
 
-    protected Information info;
+    private Information info;
     private int maxDistance;
     private int width;
     private int height;
@@ -153,8 +153,6 @@ public abstract class Actionable implements Animal, Cloneable {
             }
         }
 
-        // Avoid going past way little
-        newMemory[preLoc.getX()][preLoc.getY()] -= abs(newMemory[preLoc.getX()][preLoc.getY()] / 2);
         memory = newMemory;
     }
 
@@ -275,6 +273,9 @@ public abstract class Actionable implements Animal, Cloneable {
             for (Direction dir : Direction.values()) {
                 sum += evaluate(from, Utility.destination(to, dir), depth - 1);
             }
+            // Avoid going past way little
+            if (to.equals(preLoc)) sum -= abs(sum) / 2;
+
             return sum / Direction.values().length * (maxDistance - from.distanceTo(to)) / maxDistance;
         }
     }
@@ -321,7 +322,7 @@ public abstract class Actionable implements Animal, Cloneable {
 
     /**
      * return {@link Information} of {@link Actionable}
-     * @return
+     * @return values
      */
     public int[] getInformation() {
         if (info == null) return null;
@@ -355,7 +356,7 @@ public abstract class Actionable implements Animal, Cloneable {
      *
      * @param value to earn
      */
-    protected void earnEnergy(int value) {
+    private void earnEnergy(int value) {
         energy += value;
         energy = min(energy, getMaxEnergy());
     }

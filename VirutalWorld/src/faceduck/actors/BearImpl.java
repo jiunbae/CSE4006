@@ -17,9 +17,9 @@ public class BearImpl extends Actionable implements Bear, Edible {
     private static final int BEAR_MAX_ENERGY = 250;
     private static final int BEAR_VIEW_RANGE = 7;
     private static final int BEAR_BREED_LIMIT = BEAR_MAX_ENERGY * 6 / 7;
-    public static final int BEAR_ENERGY_VALUE = 200;
+    protected static final int BEAR_ENERGY_VALUE = 200;
     private static final int BEAR_COOL_DOWN = 5;
-    private static final int BEAR_INITIAL_ENERGY = BEAR_MAX_ENERGY * 1 / 3;
+    private static final int BEAR_INITIAL_ENERGY = BEAR_MAX_ENERGY / 3;
     private static final double BEAR_FORGETFULNESS = .3f;
 
     public BearImpl() {
@@ -41,7 +41,8 @@ public class BearImpl extends Actionable implements Bear, Edible {
 
     /**
      * Bear can see very large range, because Bear is huge
-     * @return
+     *
+     * @return viewRange
      */
     @Override
     public int getViewRange() {
@@ -50,7 +51,8 @@ public class BearImpl extends Actionable implements Bear, Edible {
 
     /**
      * Bear is very slow
-     * @return
+     *
+     * @return coolDown
      */
     @Override
     public int getCoolDown() {

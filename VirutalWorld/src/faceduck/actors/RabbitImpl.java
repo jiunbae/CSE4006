@@ -13,9 +13,9 @@ public class RabbitImpl extends Actionable implements Rabbit, Edible {
 	private static final int RABBIT_MAX_ENERGY = 20;
     private static final int RABBIT_VIEW_RANGE = 3;
     private static final int RABBIT_BREED_LIMIT = RABBIT_MAX_ENERGY * 5 / 6;
-    public static final int RABBIT_ENERGY_VALUE = 20;
+    protected static final int RABBIT_ENERGY_VALUE = 20;
     private static final int RABBIT_COOL_DOWN = 2;
-    private static final int RABBIT_INITIAL_ENERGY = RABBIT_MAX_ENERGY * 1 / 2;
+    private static final int RABBIT_INITIAL_ENERGY = RABBIT_MAX_ENERGY / 2;
     private static final double RABBIT_FORGETFULNESS = .8f;
 
 	public RabbitImpl() {
@@ -28,16 +28,31 @@ public class RabbitImpl extends Actionable implements Rabbit, Edible {
         return RABBIT_MAX_ENERGY;
     }
 
+    /**
+     * Rabbit breed often.
+     *
+     * @return breedLimit (but never breed)
+     */
     @Override
     public int getBreedLimit() {
         return RABBIT_BREED_LIMIT;
     }
 
+    /**
+     * Rabbit can not see far because small.
+     *
+     * @return viewRange
+     */
     @Override
     public int getViewRange() {
         return RABBIT_VIEW_RANGE;
     }
 
+    /**
+     * Rabbit is fast
+     *
+     * @return coolDown
+     */
     @Override
     public int getCoolDown() {
         return RABBIT_COOL_DOWN;

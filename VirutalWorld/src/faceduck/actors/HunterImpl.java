@@ -15,10 +15,10 @@ import static java.lang.Math.pow;
 public class HunterImpl extends Actionable implements Hunter, Edible {
     private static final int HUNTER_MAX_ENERGY = 150;
     private static final int HUNTER_VIEW_RANGE = 6;
-    private static final int HUNTER_BREED_LIMIT = HUNTER_MAX_ENERGY * 2 / 1;
-    public static final int HUNTER_ENERGY_VALUE = 100;
+    private static final int HUNTER_BREED_LIMIT = HUNTER_MAX_ENERGY * 2;
+    protected static final int HUNTER_ENERGY_VALUE = 100;
     private static final int HUNTER_COOL_DOWN = 4;
-    private static final int HUNTER_INITIAL_ENERGY = HUNTER_MAX_ENERGY * 1 / 3;
+    private static final int HUNTER_INITIAL_ENERGY = HUNTER_MAX_ENERGY / 3;
     private static final double HUNTER_FORGETFULNESS = 1.f;
 
     public HunterImpl() {
@@ -36,7 +36,7 @@ public class HunterImpl extends Actionable implements Hunter, Edible {
     /**
      * Hunter can't breed
      *
-     * @return
+     * @return breedLimit (but never breed)
      */
     @Override
     public int getBreedLimit() {
@@ -46,7 +46,7 @@ public class HunterImpl extends Actionable implements Hunter, Edible {
     /**
      * Hunter have very long view range
      *
-     * @return
+     * @return viewRange
      */
     @Override
     public int getViewRange() {
@@ -56,7 +56,7 @@ public class HunterImpl extends Actionable implements Hunter, Edible {
     /**
      * Hunter is cautious, so act slowly
      *
-     * @return
+     * @return coolDown
      */
     @Override
     public int getCoolDown() {
