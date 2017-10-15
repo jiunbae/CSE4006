@@ -72,7 +72,7 @@ public class Utility {
     }
 
     public static Location destination(Location loc, Direction dir) {
-        return new Location(loc.getX() + dir.getValue().getFirst(), loc.getY() + dir.getValue().getSecond());
+        return new Location(loc.getX() + dir.getValue().getX(), loc.getY() + dir.getValue().getY());
     }
 
     public static <T> boolean contain(List<T> list, T item, BiFunction<T, T, Boolean> lambda) {

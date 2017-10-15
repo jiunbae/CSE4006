@@ -67,8 +67,8 @@ public final class Location {
 		}*/
 
 		// @Custom Improve : replace above code to below
-		this.x = loc.x + dir.getValue().getFirst();
-		this.y = loc.y + dir.getValue().getSecond();
+		this.x = loc.x + dir.getValue().getX();
+		this.y = loc.y + dir.getValue().getY();
 		// END
 
 		//throw new RuntimeException("Impossible to get here.");

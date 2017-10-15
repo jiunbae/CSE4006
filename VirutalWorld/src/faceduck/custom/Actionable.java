@@ -144,8 +144,8 @@ public abstract class Actionable implements Animal, Cloneable {
                 if (memory[i][j] == 0) continue;
 
                 for (Direction dir : Direction.values()) {
-                    int x = dir.getValue().getFirst() + i;
-                    int y = dir.getValue().getSecond() + j;
+                    int x = dir.getValue().getX() + i;
+                    int y = dir.getValue().getY() + j;
                     if (!Utility.isValidLocation(x, y, width, height)) continue;
 
                     newMemory[x][y] += memory[i][j] / Direction.values().length * getForgetfulness();

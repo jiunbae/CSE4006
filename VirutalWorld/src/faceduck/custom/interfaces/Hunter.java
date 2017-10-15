@@ -1,4 +1,6 @@
 package faceduck.custom.interfaces;
 
-public interface Hunter {
+import faceduck.skeleton.interfaces.Animal;
+
+public interface Hunter extends Animal {
 }
