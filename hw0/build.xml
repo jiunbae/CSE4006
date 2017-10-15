@@ -127,7 +127,7 @@
   </target>
 
   <target name="jar" depends="compile">
-    <jar destfile="${basedir}/hw0.jar" basedir="${build}">
+    <jar destfile="${basedir}/../hw0.jar" basedir="${build}">
       <manifest>
         <attribute name="Main-Class" value="cse4006.main.Main"/>
       </manifest>
