@@ -4,12 +4,12 @@ import faceduck.skeleton.interfaces.*;
 import faceduck.skeleton.util.Direction;
 import faceduck.skeleton.util.Location;
 
-import javax.swing.text.View;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.function.*;
 
+import static faceduck.skeleton.util.Direction.*;
 import static java.lang.Math.*;
 
 public class Utility {
@@ -53,10 +53,20 @@ public class Utility {
      * @param dir
      * @return list of Direction
      */
-    public static List<Direction> workload(Direction dir) {
-        List<Direction> ret = Arrays.asList(Direction.values());
-
-        return ret;
+    public static Direction[] workload(Direction dir) {
+        switch (dir) {
+            case NORTH:
+                return new Direction[]{ NORTH, EAST, WEST, STOP, SOUTH};
+            case EAST:
+                return new Direction[]{ EAST, NORTH, SOUTH, STOP, WEST};
+            case SOUTH:
+                return new Direction[]{ SOUTH, WEST, EAST, STOP, NORTH};
+            case WEST:
+                return new Direction[]{ WEST, SOUTH, NORTH, STOP, EAST};
+            case STOP:
+            default:
+                return null;
+        }
     }
 
     /**

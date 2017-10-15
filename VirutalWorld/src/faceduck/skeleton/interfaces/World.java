@@ -111,14 +111,15 @@ public interface World {
 	public boolean isValidLocation(Location loc);
 
 	/**
+	 * @Custom Improve
 	 * Return generation
 	 *
 	 * @return generation from now one
-     * @Custom Improve
 	 */
 	public int getGeneration();
 
     /**
+	 * @Custom Improve
      * Return how many {@link Actors} in world
      *
      * @return hole counts
@@ -126,11 +127,11 @@ public interface World {
 	public HashMap<Actors, Integer> getCount();
 
 	/**
+	 * @Custom Improve
 	 * Return how many {@link Actors} in world.
 	 *
 	 * @param actor
 	 * @return count of actors
-     * @Custom Improve
 	 */
 	public int getCount(Actors actor);
 }

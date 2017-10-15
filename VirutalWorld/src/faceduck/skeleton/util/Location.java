@@ -124,6 +124,14 @@ public final class Location {
 		}
 	}
 
+	/**
+     * @Custom Improve
+     *
+	 * true if same {@link Location} by check x and y
+     *
+	 * @param other {@link Location}
+	 * @return true if same
+	 */
 	@Override
     public boolean equals(Object other) {
         if (other instanceof Location) {
