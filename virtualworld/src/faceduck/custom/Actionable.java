@@ -214,7 +214,7 @@ public abstract class Actionable implements Animal, Cloneable {
      * @return maximum value in memory(where you want to go)
      */
     private Location bestLocation(List<Location> preChoices) {
-        Location result = new Location(Util.rand.nextInt(width), Util.rand.nextInt(height));
+        Location result = new Location(Util.getRandom().nextInt(width), Util.getRandom().nextInt(height));
         for (int i = 0; i < width; ++i) {
             for (int j = 0; j < height; ++j) {
                 Location next = new Location(i, j);
@@ -243,7 +243,7 @@ public abstract class Actionable implements Animal, Cloneable {
             loc = bestLocation(choices);
             Direction dir = nowLoc.dirTo(loc);
 
-            if (isPossible(Action.BREED, nowLoc)) {
+            if (isPossible(Action.BREED, nowLoc) && Util.getRandom().nextBoolean()) {
                 dir = Utility.randomAdjacent(t ->
                         world.isValidLocation(Utility.destination(nowLoc, t)) &&
                         world.getThing(Utility.destination(nowLoc, t)) == null);

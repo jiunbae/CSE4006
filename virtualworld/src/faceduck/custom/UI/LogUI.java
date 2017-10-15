@@ -39,9 +39,9 @@ public class LogUI extends JPanel {
         for (Actors actor : actors) {
             loggable.add(actor);
             colors.put(actor,
-                    new Color(Util.rand.nextInt(256),
-                            Util.rand.nextInt(256),
-                            Util.rand.nextInt(256)));
+                    new Color(Util.getRandom().nextInt(256),
+                            Util.getRandom().nextInt(256),
+                            Util.getRandom().nextInt(256)));
             points.put(actor, new ArrayList<>());
         }
     }
