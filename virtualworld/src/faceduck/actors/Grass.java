@@ -9,7 +9,7 @@ import faceduck.skeleton.interfaces.Edible;
  */
 public class Grass implements Edible {
 
-	private static final int GRASS_ENERGY_VALUE = 5;
+	public static final int GRASS_ENERGY_VALUE = 5;
 
 	@Override
 	public int getEnergyValue() {

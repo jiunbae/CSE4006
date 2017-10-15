@@ -1,9 +1,14 @@
 package faceduck.custom.util;
 
+import faceduck.custom.interfaces.*;
 import faceduck.skeleton.interfaces.*;
 
 public enum Actors {
-    GRASS("Grass"), GNAT("Gnat"), RABBIT("Rabbit"), FOX("Fox"), GARDENER("Gardener"), EMPTY("Empty");
+    EMPTY("Empty"),
+    // Original Classes
+    GRASS("Grass"), GNAT("Gnat"), RABBIT("Rabbit"), FOX("Fox"), GARDENER("Gardener"),
+    // Custom Classes
+    BEAR("BearImpl"), HUNTER("HunterImpl");
 
     private final String name;
 
@@ -26,7 +31,11 @@ public enum Actors {
      */
     public static Actors recognize(Object obj) {
         if (obj instanceof Actor) {
-            if (obj instanceof Fox) {
+            if (obj instanceof Bear) {
+                return Actors.BEAR;
+            } else if (obj instanceof Hunter) {
+                return Actors.HUNTER;
+            } else if (obj instanceof Fox) {
                 return Actors.FOX;
             } else if (obj instanceof Rabbit) {
                 return Actors.RABBIT;

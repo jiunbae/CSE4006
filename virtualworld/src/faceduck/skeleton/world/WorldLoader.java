@@ -1,10 +1,6 @@
 package faceduck.skeleton.world;
 
-import faceduck.actors.FoxImpl;
-import faceduck.actors.Gardener;
-import faceduck.actors.Gnat;
-import faceduck.actors.Grass;
-import faceduck.actors.RabbitImpl;
+import faceduck.actors.*;
 import faceduck.skeleton.interfaces.Actor;
 import faceduck.skeleton.interfaces.World;
 import faceduck.skeleton.util.Location;
@@ -21,6 +17,10 @@ public class WorldLoader {
 	private int numGnats;
 	private int numRabbits;
 	private int numFoxes;
+	// @Custom Improve
+	private int numHunters;
+	private int numBears;
+	// END
 
 	public WorldLoader(World w) {
 		this.world = w;
@@ -29,9 +29,10 @@ public class WorldLoader {
 		this.numRabbits = numGrass / 4;
 		this.numFoxes = numRabbits / 8;
 
-//		this.numFoxes = 1;
-//		this.numGnats = 0;
-//		this.numRabbits = 1;
+		// @Custom Improve
+		this.numBears = numFoxes / 2;
+		this.numHunters = (numRabbits + numFoxes + numBears) / 15;
+		// END
 	}
 
 	/**
@@ -43,6 +44,9 @@ public class WorldLoader {
 		addGardener();
 		addRabbit();
 		addFox();
+
+		addBear();
+		addHunter();
 	}
 
 	private void addGrass() {
@@ -80,6 +84,24 @@ public class WorldLoader {
 			if (loc != null) {
 				// If the world isn't full
 				world.add(new RabbitImpl(), loc);
+			}
+		}
+	}
+
+	private void addBear() {
+		for (int i = 0; i < numBears; i++) {
+			Location loc = Util.randomEmptyLoc(world);
+			if (loc != null) {
+				world.add(new BearImpl(), loc);
+			}
+		}
+	}
+
+	private void addHunter() {
+		for (int i = 0; i < numHunters; i++) {
+			Location loc = Util.randomEmptyLoc(world);
+			if (loc != null) {
+				world.add(new HunterImpl(), loc);
 			}
 		}
 	}

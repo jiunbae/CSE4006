@@ -3,11 +3,15 @@ package faceduck.skeleton.world;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.*;
 
+import faceduck.custom.Actionable;
 import faceduck.custom.util.Actors;
+import faceduck.custom.util.Information;
 import faceduck.custom.util.Pair;
 import faceduck.skeleton.interfaces.World;
 import faceduck.custom.UI.LogUI;
@@ -31,7 +35,8 @@ public class WorldUI extends JPanel {
 
 	// @Custom Improve
     protected final LogUI vLog;
-    private final HashMap<Actors, Pair<JLabel, JLabel>> labelList;
+    private HashMap<Actors, Pair<JLabel, JLabel>> countList;
+    private List<Pair<JLabel, JLabel>> infoList;
 
     private final JLabel genLabel;
     private final JLabel genValue;
@@ -60,31 +65,45 @@ public class WorldUI extends JPanel {
 		bottom.add(run, BorderLayout.WEST);
 
         // @Custom Improve
-        vLog = new LogUI(Actors.FOX, Actors.RABBIT, Actors.GRASS, Actors.GNAT);
+        vLog = new LogUI(Actors.FOX, Actors.RABBIT, Actors.GRASS, Actors.GNAT, Actors.BEAR, Actors.HUNTER);
 
-        labelList = new HashMap<>();
-        vLog.forEachActors((Actors actor) -> {
-            labelList.put(actor, new Pair<>(new JLabel(", " + actor.toString() + ": "), new JLabel("0")));
-        });
+        // Create label and panel for show information
+        countList = new HashMap<>();
+        vLog.forEachActors((Actors actor) ->
+            countList.put(actor, new Pair<>(new JLabel(", " + actor.toString() + ": "), new JLabel("0")))
+        );
 
+        infoList = new ArrayList<>();
+        for (String label : Information.getLabels())
+            infoList.add(new Pair<>(new JLabel(label + ": "), new JLabel("0")));
 
-        JPanel information = new JPanel();
-        information.setLayout(new FlowLayout(FlowLayout.CENTER));
+        JPanel counts = new JPanel();
+        counts.setLayout(new FlowLayout(FlowLayout.CENTER));
 
         genLabel = new JLabel("Gen: ");
         genValue = new JLabel("0");
 
-        labelList.forEach((actor, labels) -> {
-            information.add(labels.getFirst());
-            information.add(labels.getSecond());
+        countList.forEach((actor, labels) -> {
+            counts.add(labels.getFirst());
+            counts.add(labels.getSecond());
         });
 
-        information.add(genValue, FlowLayout.LEFT);
-        information.add(genLabel, FlowLayout.LEFT);
+        counts.add(genValue, FlowLayout.LEFT);
+        counts.add(genLabel, FlowLayout.LEFT);
 
+        JPanel info = new JPanel();
+        info.setLayout(new FlowLayout(FlowLayout.CENTER));
+
+        infoList.forEach(p -> {
+            info.add(p.getFirst());
+            info.add(p.getSecond());
+        });
+
+        // Update visual Log UI
+        // send data to ui using {@link LogUI.log}
         worldPanel.setStepConsumer((World world) -> {
             genValue.setText(Integer.toString(world.getGeneration()));
-            labelList.forEach((actor, labels) ->
+            countList.forEach((actor, labels) ->
                 labels.getSecond().setText(Integer.toString(world.getCount(actor)))
             );
 
@@ -94,7 +113,31 @@ public class WorldUI extends JPanel {
             vLog.repaint();
         });
 
-        bottom.add(information, FlowLayout.LEFT);
+        // Toggle bottom panel to show counts or information of object
+        // If trackable object(Actionable), show object's information and if not, show general counts
+        worldPanel.setTrackConsumer((Object object) -> {
+            if (object instanceof  Actionable) {
+                int[] values = ((Actionable) object).getInformation();
+                if (values == null) return;
+                for (int i = 0; i < values.length; ++i) {
+                    infoList.get(i).getSecond().setText(Integer.toString(values[i]));
+                }
+
+                bottom.remove(counts);
+                bottom.add(info);
+                bottom.invalidate();
+                bottom.validate();
+                bottom.repaint();
+            } else {
+                bottom.remove(info);
+                bottom.add(counts);
+                bottom.invalidate();
+                bottom.validate();
+                bottom.repaint();
+            }
+        });
+
+        bottom.add(counts, FlowLayout.LEFT);
         // END
 
         add(bottom, BorderLayout.SOUTH);
@@ -135,6 +178,9 @@ public class WorldUI extends JPanel {
 
 		// draw the world
 		worldPanel.setVisible(true);
+
+		// @Custom Improve : load value after init
+		worldPanel.consumeStep();
 	}
 
 	/**

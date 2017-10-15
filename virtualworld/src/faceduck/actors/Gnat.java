@@ -1,5 +1,6 @@
 package faceduck.actors;
 
+import faceduck.ai.GnatAI;
 import faceduck.custom.Actionable;
 import faceduck.custom.util.*;
 
@@ -14,7 +15,7 @@ public class Gnat extends Actionable {
 	private static final int COOL_DOWN = 0;
 
 	public Gnat(int size) {
-        super(0);
+        super(new GnatAI(), 0);
     }
 
 	@Override
@@ -37,6 +38,23 @@ public class Gnat extends Actionable {
 		return COOL_DOWN;
 	}
 
+    /**
+     * Gnat does not have any memory, so he behaves randomly.
+     * @return 0
+     */
+    @Override
+    protected double getForgetfulness() {
+        return 0;
+    }
+
+    /**
+     * Judges what you seen and return preference.<br><br>
+     *
+     * But Gnat doesn't care anything.
+     *
+     * @param actor to judge
+     * @return value of preference
+     */
     @Override
     protected double judge(Actors actor) {
 	    switch (actor) {
@@ -47,7 +65,7 @@ public class Gnat extends Actionable {
             case GARDENER:
             case EMPTY:
             default:
-                return Recognizable.IRRELEVANT.getValue();
+                return Recognizable.UNKNOWN.getValue();
         }
     }
 }

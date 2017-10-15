@@ -9,6 +9,9 @@ import faceduck.skeleton.util.Util;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static java.lang.Math.*;
 
@@ -32,17 +35,24 @@ public abstract class Actionable implements Animal, Cloneable {
     private boolean initialized = false;
     private double[][] memory;
     private World world;
+    private AI ai;
 
     private Location nowLoc;
     private Location preLoc;
 
+    protected Information info;
     private int maxDistance;
     private int width;
     private int height;
     private int energy;
 
-    public Actionable(int energy) {
+    public Actionable() {
+
+    }
+
+    public Actionable(AI ai, int energy) {
         this.energy = energy;
+        this.ai = ai;
     }
 
     /**
@@ -53,7 +63,8 @@ public abstract class Actionable implements Animal, Cloneable {
         try {
             world.remove(this);
         } catch (Exception e) {
-            e.printStackTrace();
+            // this can raise if erase from world after erased.
+            // e.printStackTrace();
         }
     }
 
@@ -76,6 +87,7 @@ public abstract class Actionable implements Animal, Cloneable {
             for (int j = 0; j < height; ++j)
                 memory[i][j] = 0;
 
+        if (info == null) info = new Information(0);
         initialized = true;
     }
 
@@ -99,14 +111,16 @@ public abstract class Actionable implements Animal, Cloneable {
         // update memory, see world and arrange memory to right predict.
         behold(world);
 
+        // @TODO anti pattern, It's cleaner not to use AI
         // get best choice
-        Command cmd = decide();
+        Command cmd = ai.act(world, this);
         cmd.execute(world, this);
         preLoc = nowLoc;
 
         // do something(even if wait) is take energy.
         energy -= 1;
         energy = max(0, energy);
+        info.older(getCoolDown());
 
         // die if energy under 0
         if (energy <= 0 && energy != getMaxEnergy())
@@ -132,16 +146,13 @@ public abstract class Actionable implements Animal, Cloneable {
 
     /**
      * The degree of confidence in what is seen is increasingly faint.
-     * Default 0.8 means that confidence decrease 20% every {@link #propagation()}.
      * The lower the value, the more think about what is visible.
      *
-     * @return forget ratio
+     * @return getForgetfulness ratio
      */
-    protected double forget() {
-        return 0.7;
-    }
+    protected abstract double getForgetfulness();
 
-    private double evalute(Location from, Location to, int depth) {
+    private double evaluate(Location from, Location to, int depth) {
         if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
 
         if (depth == 0) {
@@ -150,7 +161,7 @@ public abstract class Actionable implements Animal, Cloneable {
         } else {
             double sum = 0;
             for (Direction dir : Direction.values()) {
-                sum += evalute(from, to, depth - 1);
+                sum += evaluate(from, Utility.destination(to, dir), depth - 1);
             }
             return sum / Direction.values().length;
         }
@@ -166,15 +177,7 @@ public abstract class Actionable implements Animal, Cloneable {
      */
     public double evaluate(Location from, Location to) {
         if (!Utility.isValidLocation(to.getX(), to.getY(), width, height)) return 0;
-
-//        double value = Utility.getValue(memory, to.getX(), to.getY()) * 10;
-//        for (Direction dir : Direction.values()) {
-//            value += Utility.getValue(memory,
-//                    to.getX() + dir.getValue().getFirst(), to.getY() + dir.getValue().getSecond());
-//        }
-//
-//        return (value * log((maxDistance - from.distanceTo(to)) * 16) / 5) / 5;
-        return evalute(from, to, 3) * log((maxDistance - from.distanceTo(to)) * 16) / 5;
+        return evaluate(from, to, getViewRange() / 2) * log((maxDistance - from.distanceTo(to)) * 16) / 5;
     }
 
     /**
@@ -213,7 +216,7 @@ public abstract class Actionable implements Animal, Cloneable {
                     int y = dir.getValue().getSecond() + j;
                     if (!Utility.isValidLocation(x, y, width, height)) continue;
 
-                    newMemory[x][y] += memory[i][j] / Direction.values().length * forget();
+                    newMemory[x][y] += memory[i][j] / Direction.values().length * getForgetfulness();
                 }
             }
         }
@@ -222,8 +225,18 @@ public abstract class Actionable implements Animal, Cloneable {
         memory = newMemory;
     }
 
-    public double getMemory(int x, int y) {
-        return memory[x][y];
+    /**
+     * Support forEach loop to iterate memory
+     *
+     * @param f as Consumer with Double as value, Location as position
+     */
+    public void forEachMemory(BiConsumer<Double, Location> f) {
+        if (memory == null) return;
+        for (int i = 0; i < width; ++i) {
+            for (int j = 0; j < height; ++j) {
+                f.accept(memory[i][j], new Location(i, j));
+            }
+        }
     }
 
     /**
@@ -255,13 +268,15 @@ public abstract class Actionable implements Animal, Cloneable {
      *
      * @return the best command
      */
-    private Command decide() {
+    public Command decide() {
         List<Location> choices = new ArrayList<>();
         Location loc;
 
         do {
             loc = bestLocation(choices);
             Direction dir = nowLoc.dirTo(loc);
+            Location dest = Utility.destination(nowLoc, dir);
+            if (!world.isValidLocation(loc) || !world.isValidLocation(dest)) continue;
 
             // First of all, check you can breed.
             // Breed is most a intense instinct
@@ -278,15 +293,17 @@ public abstract class Actionable implements Animal, Cloneable {
                 if (dir != null) return Action.BREED.command(dir);
             }
 
-            //
-            if (isPossible(Action.EAT, Utility.destination(nowLoc, dir))) {
+            if (isPossible(Action.EAT, dest)) {
                 return Action.EAT.command(dir);
-            } else if (isPossible(Action.MOVE, Utility.destination(nowLoc, dir))) {
+            } else if (isPossible(Action.MOVE, dest)) {
                 return Action.MOVE.command(dir);
             } else {
-                for (Direction to : Utility.workload(dir))
-                    if (isPossible(Action.MOVE, Utility.destination(nowLoc, to)))
+                for (Direction to : Utility.workload(dir)) {
+                    Location d = Utility.destination(nowLoc, to);
+                    if (!world.isValidLocation(d)) continue;
+                    if (isPossible(Action.MOVE, d))
                         return Action.MOVE.command(to);
+                }
             }
 
             if (Utility.isClosed(world, nowLoc)) {
@@ -301,8 +318,7 @@ public abstract class Actionable implements Animal, Cloneable {
      * @param loc to do action
      * @return take action in location is possible
      */
-    private boolean isPossible(Action act, Location loc) {
-        if (!world.isValidLocation(loc)) return false;
+    protected boolean isPossible(Action act, Location loc) {
         Object obj = world.getThing(loc);
         switch(act) {
             case WAIT:
@@ -323,7 +339,7 @@ public abstract class Actionable implements Animal, Cloneable {
      *
      * @param value to earn
      */
-    private void earnEnergy(int value) {
+    protected void earnEnergy(int value) {
         energy += value;
         energy = min(energy, getMaxEnergy());
     }
@@ -342,6 +358,7 @@ public abstract class Actionable implements Animal, Cloneable {
             clone = (Actionable) super.clone();
             clone.energy = this.energy;
             clone.initialized = false;
+            clone.info = new Information(info.getGeneration());
             return clone;
         } catch (Exception e) {
             e.printStackTrace();
@@ -352,6 +369,11 @@ public abstract class Actionable implements Animal, Cloneable {
     @Override
     public int getEnergy() {
         return energy;
+    }
+
+    public int[] getInformation() {
+        if (info == null) return null;
+        return info.getValues();
     }
 
     /**
@@ -372,6 +394,7 @@ public abstract class Actionable implements Animal, Cloneable {
         Edible target = (Edible) world.getThing(targetLoc);
         earnEnergy(target.getEnergyValue());
         world.remove(target);
+        info.writeEat();
     }
 
     /**
@@ -391,6 +414,7 @@ public abstract class Actionable implements Animal, Cloneable {
 
         world.remove(this);
         world.add(this, nextLoc);
+        info.writeMove();
     }
 
     /**
@@ -413,5 +437,6 @@ public abstract class Actionable implements Animal, Cloneable {
         } catch(Exception e) {
             e.printStackTrace();
         }
+        info.writeBreed();
     }
 }
