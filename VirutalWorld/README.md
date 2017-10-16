@@ -106,7 +106,7 @@ World의 Actor들의 추세를 가시적으로쉽게 확인할 수 있는 로그
 
 ![Information Panel 1](https://hconnect.hanyang.ac.kr/CSE4006/cse4006_2015004584/raw/master/VirutalWorld/images/Fig3%20Bottom%20Panel.png)
 
-![Information Panel 2](https://hconnect.hanyang.ac.kr/CSE4006/cse4006_2015004584/raw/master/VirutalWorld/images/Fig3%20Bottom%20Panel.png)
+![Information Panel 2](https://hconnect.hanyang.ac.kr/CSE4006/cse4006_2015004584/raw/master/VirutalWorld/images/Fig3%20Bottom%20Panel2.png)
 
 #### Actionable Sight
 
