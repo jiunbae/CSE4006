@@ -8,13 +8,13 @@
 
 Actor들을 상속하는 Actionable 추상 클래스를 정의했다. 추가 구현한 Bear, Hunter도 Actionable을 상속받는다.
 
-![Diagram](https://hconnect.hanyang.ac.kr/CSE4006/cse4006_2015004584/raw/master/VirutalWorld/images/Fig7%20Diagram.png)
+![Diagram](https://github.com/MaybeS/CSE4006/blob/master/VirutalWorld/images/Fig7%20Diagram.png?raw=true)
 
 ### Actionable
 
 Actionable은 Actor들을 일반화 한 추상 클래스로 필요한 대부분의 기능을 일반화 하여 작성했다. Actionable은 행동을 할 때마다 시야에 들어온 다른 객체들을 바탕으로 다음 행동을 추론한다. Actionable은 act함수가 실행되면 propagation을 호출하여 이전 기억들을 토대로 다른 객체들의 현재 위치를 추론하고 주어진 시야에 있는 객체들을 behold를 통해 업데이트 한다. forgetfulness를 설정하여 기억이 얼마나 오래가는 지 결정한다. 시야 안의 객체들은 judge를 통해 수치화 된다. 이렇게 저장된 기억을 토대로 evaluate를 통해 각 위치의 선호도를 평가한다. 이렇게 평가된 위치들을 기반으로 decide는 가장 좋은 위치와 그에 따른 행동을 결정한다. Actionable은 이렇게 Actor의 의사 결정을 일반화 하여 처리함으로 각각 클래스에 해당하는 AI 클래스가 별도로 필요하지 않다. 하지만 명세에 각 AI 클래스를 구현하라는 조건이 있었으므로 형식적으로 AI 클래스의 act에 Actionable의 decide를 호출하도록 변경해 두었다.
 
-![Actionable Diagram](https://hconnect.hanyang.ac.kr/CSE4006/cse4006_2015004584/raw/master/VirutalWorld/images/Fig1%20Actionable%20Diagram.png)
+![Actionable Diagram](https://github.com/MaybeS/CSE4006/blob/master/VirutalWorld/images/Fig1%20Actionable%20Diagram.png?raw=true)
 
 - propagation은 다른 객체들의 다음 위치를 예상한다. 사방으로 움직이거나 정지해있다고 가정한다.
 
@@ -94,7 +94,7 @@ Direction을 개선함으로써 Location과 Direction을 받는 생성자의 코
 
 World의 Actor들의 추세를 가시적으로쉽게 확인할 수 있는 로그 창을 만들었다. Custom.UI.LogUI에 작성되어 있으며 JPanel을 상속받아 구현하였다. 초기화 될 때 정보를 수집할 Actor들을 정한다. 로그를 수집하기 위해 World에 현재가 몇 세대인지 반환하는 getGeneration과현재 Actor들의 숫자를 반환하는 getCount를 추가하였다. WorldImpl에는 Actor들의 숫자를 파악하기 위해 add와 deletion에 해당 Actor를 추적하는 코드를 삽입하였고 세대를 측정하기 위해 step마다 증가하도록 설정했다. WorldPanel에는 생성자부분에 로그를 기록하고 그래프를 업데이트 하기 위해 람다를 등록하는 stepConsumer를 만들고 WorldUI에setStepConsumer를 통해 매 step마다 world에서 값을 가져오고LogUI에 값을 전달하는 람다 함수를 설정했다.
 
-![LogUI](https://hconnect.hanyang.ac.kr/CSE4006/cse4006_2015004584/raw/master/VirutalWorld/images/Fig2%20LogUI.png)
+![LogUI](https://github.com/MaybeS/CSE4006/blob/master/VirutalWorld/images/Fig2%20LogUI.png?raw=true)
 
 그래프 사이즈는 196 * 64로 설정하였고, 최근64세대만 표시한다.
 
@@ -104,17 +104,17 @@ World의 Actor들의 추세를 가시적으로쉽게 확인할 수 있는 로그
 
 하단에 간단한 정보를 보여줄 수 있는 라벨들을 추가했다. 기본 상태에서는 현재 세대 정보가 각 Actor의 개체 수와 함께 나타난다. Actionable객체를 선택하게 되면 해당 객체의 상세 정보가 나온다. born은 객체가 생성될 당시의 세대이고, age는 생성된 이후로 지난 세대 수, eat, move, child는 각각 어떤 행동을 했는지 나타내며 현재 energy도 표시된다. 빈 공간이나 Actionable이 아닌 객체를 클릭하면 기본 상태로 돌아갈 수 있다. 구현을 위해 WorldUI에 새로운 라벨을 추가하였고, WorldPanel에 trackConsumer를 만들어 선택한 객체를 추적하면서 정보를받아올 수 있도록 구현하였다.
 
-![Information Panel 1](https://hconnect.hanyang.ac.kr/CSE4006/cse4006_2015004584/raw/master/VirutalWorld/images/Fig3%20Bottom%20Panel.png)
+![Information Panel 1](https://github.com/MaybeS/CSE4006/blob/master/VirutalWorld/images/Fig3%20Bottom%20Panel.png?raw=true)
 
-![Information Panel 2](https://hconnect.hanyang.ac.kr/CSE4006/cse4006_2015004584/raw/master/VirutalWorld/images/Fig3%20Bottom%20Panel2.png)
+![Information Panel 2](https://github.com/MaybeS/CSE4006/blob/master/VirutalWorld/images/Fig3%20Bottom%20Panel2.png?raw=true)
 
 #### Actionable Sight
 
 Actionable의 입장에서 잘 판단하고 있는지 확인 하기위해 만든 Visual모드 이다. VIEWRANGE,
 WEIGHTS, EVALUATED 3가지모드를 지원하며 SightMode에 작성되어 있다. Actionable객체를 선택하게 되면 먼저 VIEWRANGE모드가 되고 해당 객체가 볼 수 있는 범위만큼만볼 수 있게 된다. WEIGHTS모드는 해당 객체가 기억하고 있는 memory를 보여 준다. Actionable객체는 behold를 통해 memory를 계속업데이트 한다. 마지막으로 EVALUATED모드는 각 지역을 실제로 Actionable의 evaluate를 통해 평가한 값을 보여준다. 이 값이 높은 쪽으로 객체가 움직이게 된다.
 
-![Actionable Sight VIEWRANGE](https://hconnect.hanyang.ac.kr/CSE4006/cse4006_2015004584/raw/master/VirutalWorld/images/Fig4%20Actionable%20Sight%20VIEWRANGE.png)
+![Actionable Sight VIEWRANGE](https://github.com/MaybeS/CSE4006/blob/master/VirutalWorld/images/Fig4%20Actionable%20Sight%20VIEWRANGE.png?raw=true)
 
-![Actionable Sight WEIGHTS](https://hconnect.hanyang.ac.kr/CSE4006/cse4006_2015004584/raw/master/VirutalWorld/images/Fig5%20Actionable%20Sight%20WEIGHTS.png)
+![Actionable Sight WEIGHTS](https://github.com/MaybeS/CSE4006/blob/master/VirutalWorld/images/Fig5%20Actionable%20Sight%20WEIGHTS.png?raw=true)
 
-![Actionable Sight EVALUATED](https://hconnect.hanyang.ac.kr/CSE4006/cse4006_2015004584/raw/master/VirutalWorld/images/Fig6%20Actionable%20Sight%20EVALUATED.png)
+![Actionable Sight EVALUATED](https://github.com/MaybeS/CSE4006/blob/master/VirutalWorld/images/Fig6%20Actionable%20Sight%20EVALUATED.png?raw=true)
