@@ -32,6 +32,7 @@ cmake-build-debug/
 
 # IntelliJ
 out/
+classes/
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/
@@ -41,8 +42,6 @@ atlassian-ide-plugin.xml
 
 # Cursive Clojure plugin
 .idea/replstate.xml
-
-classes/*
 
 # Crashlytics plugin (for Android Studio and IntelliJ)
 com_crashlytics_export_strings.xml
