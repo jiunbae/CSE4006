@@ -2,7 +2,7 @@ import java.util.function.Consumer;
 import static utility.Number.Operator;
 import static utility.Number.eval;
 
-public class BST<T extends Number> {
+public class BinaryTree<T extends Number> {
     public class Node {
         private T data;
         private Node left;
@@ -26,7 +26,7 @@ public class BST<T extends Number> {
     private Node root;
     private int mSize;
 
-    public BST() {
+    public BinaryTree() {
         root = null;
         mSize = 0;
     }
