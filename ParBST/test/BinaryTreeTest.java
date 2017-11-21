@@ -7,11 +7,11 @@ import static org.junit.Assert.*;
 
 public class BinaryTreeTest {
     static int[] tests = { 2, 4, 1, 7, 9, 8};
-    static BinaryTree binaryTree;
+    static BinaryTree<Integer> binaryTree;
 
     @BeforeClass
     public static void makeInstance() throws Exception {
-        binaryTree = new BinaryTree<Integer>();
+        binaryTree = new BinaryTree<>();
     }
 
     @Test
@@ -28,7 +28,7 @@ public class BinaryTreeTest {
             binaryTree.insert(i);
         }
 
-        assertEquals(binaryTree.findMin(), Arrays.stream(tests).min().getAsInt());
+        assertEquals(binaryTree.findMin().intValue(), Arrays.stream(tests).min().getAsInt());
     }
 
     @Test
