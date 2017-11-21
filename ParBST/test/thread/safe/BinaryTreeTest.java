@@ -46,5 +46,4 @@ public class BinaryTreeTest {
     @Test
     public void delete() throws Exception {
     }
-
 }

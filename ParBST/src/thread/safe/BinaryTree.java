@@ -2,6 +2,7 @@ package thread.safe;
 
 import interfaces.Tree;
 
+import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -124,7 +125,7 @@ public class BinaryTree<T extends Comparable<? super T>> implements interfaces.T
         return result;
     }
 
-    private boolean search(Node<T> node, T data) {
+    private boolean search(LockableNode node, T data) {
         if (node == null)
             return false;
         else {
