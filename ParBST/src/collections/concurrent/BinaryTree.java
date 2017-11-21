@@ -1,12 +1,11 @@
-package thread.safe;
+package collections.concurrent;
 
-import interfaces.Tree;
+import collections.interfaces.Tree;
 
-import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class BinaryTree<T extends Comparable<? super T>> implements interfaces.Tree<T> {
+public class BinaryTree<T extends Comparable<? super T>> implements collections.interfaces.Tree<T> {
     public class LockableNode extends Tree.Node<T> {
         ReentrantLock locker;
         LockableNode left;

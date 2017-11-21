@@ -1,8 +1,10 @@
-import interfaces.Tree;
+package collections;
+
+import collections.interfaces.Tree;
 
 import java.util.function.Consumer;
 
-public class BinaryTree<T extends Comparable<? super T>> implements interfaces.Tree<T> {
+public class BinaryTree<T extends Comparable<? super T>> implements collections.interfaces.Tree<T> {
     private Node<T> root;
 
     public BinaryTree() {

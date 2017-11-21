@@ -1,10 +1,9 @@
-package thread.safe;
+package collections.concurrent;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
