@@ -25,6 +25,10 @@ public class Pool {
         }
     }
 
+    public void join() {
+        while (!queue.isEmpty());
+    }
+
     public final int size() {
         return queue.size();
     }

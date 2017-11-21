@@ -46,6 +46,7 @@ public class BinaryTreeTest {
         }
 
         for (int i : tests) {
+            assertTrue(binaryTree.search(i));
             binaryTree.delete(i);
             assertFalse(binaryTree.search(i));
         }
