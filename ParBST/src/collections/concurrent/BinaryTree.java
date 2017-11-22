@@ -2,6 +2,7 @@ package collections.concurrent;
 
 import collections.interfaces.Tree;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -25,12 +26,14 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
         }
     }
 
-    private ReentrantLock lock;
-    private LockableNode root;
+    ReentrantLock lock;
+    LockableNode root;
+    AtomicInteger size;
 
     public BinaryTree() {
         lock = new ReentrantLock();
         root = null;
+        size = new AtomicInteger(0);
     }
 
     @Override
@@ -64,6 +67,7 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
                 }
             }
         }
+        size.incrementAndGet();
         return true;
     }
 
@@ -78,7 +82,42 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
             cur.lock();
 
             int compare = cur.data.compareTo(data);
-            if (compare == 0) {
+            if (compare != 0) {
+                par = cur;
+                cur = compare > 0 ? cur.left : cur.right;
+                cur.lock();
+                lock.unlock();
+
+                while (true) {
+                    compare = cur.data.compareTo(data);
+                    if (compare == 0) {
+                        LockableNode rep = replacement(cur);
+
+                        compare = par.data.compareTo(data);
+                        if (compare > 0) par.left = rep;
+                        else par.right = rep;
+
+                        if (rep != null) {
+                            rep.left = cur.left;
+                            rep.right = cur.right;
+                        }
+
+                        cur.unlock();
+                        par.unlock();
+                        break;
+                    } else {
+                        par.unlock();
+                        par = cur;
+
+                        compare = cur.data.compareTo(data);
+                        if (compare > 0) cur = cur.left;
+                        else cur = cur.right;
+                    }
+
+                    if (cur == null) return false;
+                    else cur.lock();
+                }
+            } else {
                 LockableNode rep = replacement(cur);
                 root = rep;
 
@@ -89,44 +128,11 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
 
                 cur.unlock();
                 lock.unlock();
-                return true;
             }
-            par = cur;
-            cur = compare > 0 ? cur.left : cur.right;
-            cur.lock();
-            lock.unlock();
 
-            while (true) {
-                compare = cur.data.compareTo(data);
-                if (compare == 0) {
-                    LockableNode rep = replacement(cur);
-
-                    compare = par.data.compareTo(data);
-                    if (compare > 0) par.left = rep;
-                    else par.right = rep;
-
-                    if (rep != null) {
-                        rep.left = cur.left;
-                        rep.right = cur.right;
-                    }
-
-                    cur.unlock();
-                    par.unlock();
-                    return true;
-                } else {
-                    par.unlock();
-                    par = cur;
-
-                    compare = cur.data.compareTo(data);
-                    if (compare > 0) cur = cur.left;
-                    else cur = cur.right;
-                }
-
-                if (cur == null) break;
-                else cur.lock();
-            }
         }
-        return false;
+        size.decrementAndGet();
+        return true;
     }
 
     private LockableNode replacement(LockableNode sub) {
@@ -188,20 +194,37 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
 
     public boolean search(T data) {
         lock.lock();
-        boolean result = search(root, data);
-        lock.unlock();
-        return result;
+        if (root == null) {
+            lock.unlock();
+            return false;
+        } else {
+            LockableNode cur = root;
+            cur.lock();
+            lock.unlock();
+
+            while (true) {
+                int compare = cur.data.compareTo(data);
+                if (compare == 0) {
+                    cur.unlock();
+                    return true;
+                } else {
+                    LockableNode next = compare > 0 ? cur.left : cur.right;
+                    if (next == null) {
+                        cur.unlock();
+                        return false;
+                    }
+
+                    next.lock();
+                    cur.unlock();
+                    cur = next;
+                }
+            }
+        }
     }
 
-    private boolean search(LockableNode node, T data) {
-        if (node == null)
-            return false;
-        else {
-            int compare = node.data.compareTo(data);
-            if (compare > 0) return search(node.left, data);
-            else if (compare < 0) return search(node.right, data);
-            else return true;
-        }
+    @Override
+    public int size() {
+        return this.size.get();
     }
 
     @Override

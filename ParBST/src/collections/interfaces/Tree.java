@@ -1,6 +1,6 @@
 package collections.interfaces;
 
-import java.util.function.Consumer;
+        import java.util.function.Consumer;
 
 public interface Tree<T extends Comparable<? super T>> {
     class Node<F extends Comparable<? super F>> {
@@ -16,6 +16,8 @@ public interface Tree<T extends Comparable<? super T>> {
 
     boolean insert(T data);
     boolean delete(T data);
+    boolean search(T data);
+    int size();
 
     void preOrderTraversal(final Consumer<Node<T>> f);
     void inOrderTraversal(final Consumer<Node<T>> f);

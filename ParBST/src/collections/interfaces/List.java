@@ -22,11 +22,11 @@ public interface List<T> {
             Node<F> front = new Node<>(item);
             front.next = this;
             this.front = front;
-            return next;
+            return front;
         }
     }
 
-    void add(int index, T item);
+    boolean add(int index, T item);
     boolean add(T item);
     boolean addFirst(T item);
 

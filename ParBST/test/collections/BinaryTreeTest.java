@@ -1,57 +1,63 @@
 package collections;
 
+import collections.interfaces.Tree;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.*;
 
 public class BinaryTreeTest {
-    static int[] tests = { 2, 4, 1, 7, 9, 8};
-    static BinaryTree<Integer> binaryTree;
+    private static Tree<Integer> tree;
+
+    private static final int testSize = 100000;
+    private static List<Integer> numbers;
 
     @BeforeClass
-    public static void makeInstance() throws Exception {
-        binaryTree = new BinaryTree<>();
+    public static void init() throws Exception {
+        numbers = IntStream.range(0, testSize).boxed().collect(Collectors.toList());
+        Collections.shuffle(numbers);
+    }
+
+    @Before
+    public void makeInstance() throws Exception {
+        tree = new BinaryTree<>();
     }
 
     @Test
     public void insert() throws Exception {
-        for (int i : tests) {
-            binaryTree.insert(i);
-            assertTrue(binaryTree.search(i));
+        for (int i : numbers) {
+            tree.insert(i);
+            assertTrue(tree.search(i));
         }
-    }
-
-    @Test
-    public void findMin() throws Exception {
-        for (int i : tests) {
-            binaryTree.insert(i);
-        }
-
-        assertEquals(binaryTree.findMin().intValue(), Arrays.stream(tests).min().getAsInt());
+        assertEquals(numbers.size(), tree.size());
     }
 
     @Test
     public void search() throws Exception {
-        for (int i : tests) {
-            binaryTree.insert(i);
-            assertTrue(binaryTree.search(i));
+        for (int i : numbers) {
+            tree.insert(i);
+            assertTrue(tree.search(i));
         }
     }
 
     @Test
     public void delete() throws Exception {
-        for (int i : tests) {
-            binaryTree.insert(i);
+        for (int i : numbers) {
+            tree.insert(i);
         }
 
-        for (int i : tests) {
-            assertTrue(binaryTree.search(i));
-            binaryTree.delete(i);
-            assertFalse(binaryTree.search(i));
+        for (int i : numbers) {
+            assertTrue(tree.search(i));
+            tree.delete(i);
+            assertFalse(tree.search(i));
         }
+        assertEquals(0, tree.size());
     }
 
     @Test

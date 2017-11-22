@@ -1,67 +1,103 @@
 package collections;
 
-import collections.interfaces.List;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.*;
 
 public class LinkedListTest {
-    static int[] tests = { 2, 4, 1, 7, 9, 8};
-    static List<Integer> list;
+    private static collections.interfaces.List<Integer> list;
+
+    private static final int testSize = 100000;
+    private static List<Integer> numbers;
 
     @BeforeClass
-    public static void makeInstance() throws Exception {
-        list = new LinkedList<>();
+    public static void init() throws Exception {
+        numbers = IntStream.range(0, testSize).boxed().collect(Collectors.toList());
+        Collections.shuffle(numbers);
+    }
+
+    @Before
+    public void makeInstance() throws Exception {
+        list = new collections.LinkedList<>();
+
+        for (int i : numbers) {
+            list.add(i);
+        }
     }
 
     @Test
     public void add() throws Exception {
-        for (int i : tests) {
-            list.add(i);
-        }
-
-        assertEquals(list.size(), tests.length);
-        Object[] array = list.toArray();
-        for (int i = 0; i < tests.length; ++i) {
-            assertEquals(tests[i], (int) array[i]);
-        }
+        assertEquals(numbers.size(), list.size());
     }
 
     @Test
     public void add1() throws Exception {
+        int index = 3;
+        list.add(index, numbers.get(index));
+
+        assertEquals(numbers.get(index), list.get(index));
     }
 
     @Test
     public void addFirst() throws Exception {
+        list.addFirst(numbers.get(0));
+        assertEquals(numbers.get(0), list.getFirst());
     }
 
     @Test
     public void get() throws Exception {
+        for (int i = 0; i < numbers.size(); ++i) {
+            assertEquals(numbers.get(i), list.get(i));
+        }
     }
 
     @Test
     public void getFirst() throws Exception {
+        assertEquals(numbers.get(0), list.getFirst());
     }
 
     @Test
     public void getLast() throws Exception {
+        assertEquals(numbers.get(numbers.size() - 1), list.getLast());
     }
 
     @Test
     public void indexOf() throws Exception {
+        for (int i = 0; i < numbers.size(); ++i) {
+            assertEquals(i, list.indexOf(numbers.get(i)));
+        }
     }
 
     @Test
     public void remove() throws Exception {
+        list.remove(0);
+        assertEquals(numbers.size() - 1, list.size());
     }
 
     @Test
     public void remove1() throws Exception {
+        numbers.forEach((e) -> list.remove(e));
+
+        assertEquals(0, list.size());
     }
 
     @Test
     public void size() throws Exception {
+        assertEquals(numbers.size(), list.size());
     }
 
+    @Test
+    public void toArray() throws Exception {
+        Object[] array = list.toArray();
+        for (int i = 0; i < numbers.size(); ++i) {
+            assertEquals(array[i], numbers.get(i));
+        }
+    }
 }

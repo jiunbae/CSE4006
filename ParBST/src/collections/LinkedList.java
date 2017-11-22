@@ -13,11 +13,28 @@ public class LinkedList<T> implements List<T> {
     }
 
     @Override
-    public void add(int index, T item) {
-        Node<T> node = getNode(index);
-        Node<T> next = node.next;
-        node.makeNext(item).next = next;
-        counter += 1;
+    public boolean add(int index, T item) {
+        if (head == null) {
+            last = head = new Node<>(item);
+            counter += 1;
+            return true;
+        }
+
+        try {
+            Node<T> node = getNode(index);
+            Node<T> front = node.front;
+            Node<T> child = node.makeFront(item);
+            if (front != null) front.next = child;
+            child.front = front;
+
+            if (head.front != null) head = head.front;
+            if (last.next != null) last = last.next;
+
+            counter += 1;
+            return true;
+        } catch (NullPointerException e) {
+            return false;
+        }
     }
 
     @Override
@@ -42,7 +59,7 @@ public class LinkedList<T> implements List<T> {
     }
 
     @Override
-    public T get(int index) {
+    public T get(int index) throws NullPointerException {
         return getNode(index).item;
     }
 
@@ -69,12 +86,17 @@ public class LinkedList<T> implements List<T> {
     @Override
     public boolean remove(T item) {
         Node<T> node = head;
-        while (node != last) {
-            if (node.item == item) {
-                removeNode(node);
-                return true;
+        if (node.item.equals(item)) {
+            removeNode(node);
+            return true;
+        } else {
+            while (node.next != null) {
+                if (node.item.equals(item)) {
+                    removeNode(node);
+                    return true;
+                }
+                node = node.next;
             }
-            node = node.next;
         }
         return false;
     }
@@ -106,7 +128,7 @@ public class LinkedList<T> implements List<T> {
     private int getIndex(T element) {
         Node<T> node = head;
         int index = 0;
-        while (node.item != element) {
+        while (!node.item.equals(element)) {
             node = node.next;
             ++index;
         }
@@ -114,10 +136,11 @@ public class LinkedList<T> implements List<T> {
     }
 
     private T removeNode(Node<T> node) {
-        if (node.front != null)
-            node.front.next = node.next;
-        if (node.next != null)
-            node.next.front = node.front;
+        if (node.front != null) node.front.next = node.next;
+        else head = node.next;
+
+        if (node.next != null) node.next.front = node.front;
+        else last = node.front;
         counter -= 1;
         return node.item;
     }

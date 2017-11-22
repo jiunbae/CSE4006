@@ -6,14 +6,18 @@ import java.util.function.Consumer;
 
 public class BinaryTree<T extends Comparable<? super T>> implements collections.interfaces.Tree<T> {
     private Node<T> root;
+    private int size;
 
     public BinaryTree() {
         root = null;
+        size = 0;
     }
 
+    @Override
     public boolean insert(T data) {
         try {
             root = insert(root, data);
+            size += 1;
             return true;
         } catch (RuntimeException e) {
             return false;
@@ -34,17 +38,7 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
         return p;
     }
 
-    public T findMin() {
-        if (root == null) throw new RuntimeException("cannot findMin.");
-
-        Node<T> node = root;
-        while (node.left != null) {
-            node = node.left;
-        }
-
-        return node.data;
-    }
-
+    @Override
     public boolean search(T data) {
         return search(root, data);
     }
@@ -60,9 +54,11 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
         }
     }
 
+    @Override
     public boolean delete(T data) {
         try {
             root = delete(root, data);
+            size -= 1;
             return true;
         } catch (RuntimeException e) {
             return false;
@@ -97,6 +93,11 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
             p = p.right;
         }
         return p.data;
+    }
+
+    @Override
+    public int size() {
+        return this.size;
     }
 
     @Override

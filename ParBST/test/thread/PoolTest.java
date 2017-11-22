@@ -1,5 +1,6 @@
 package thread;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -8,13 +9,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.Assert.*;
 
 public class PoolTest {
-    static final int nThreads = 8;
-    static final int nTests = 10000000;
-    static long time;
-    static Pool pool;
+    private static final int nThreads = 8;
+    private static final int nTests = 1000000;
+    private static Pool pool;
 
-    @BeforeClass
-    public static void makeInstance() throws Exception {
+    @Before
+    public void makeInstance() throws Exception {
         pool = new Pool(nThreads);
     }
 
@@ -23,25 +23,21 @@ public class PoolTest {
         AtomicInteger count = new AtomicInteger();
 
         for (int i = 0; i < nTests; ++i) {
-            pool.push(() -> {
-                count.getAndIncrement();
-            });
+            pool.push(count::getAndIncrement);
         }
 
-        while (!pool.isEmpty());
-        assertEquals(count.get(), nTests);
+        pool.join();
+        assertEquals(nTests, count.get());
     }
 
     @Test
     public void time() throws Exception {
-        time = System.currentTimeMillis();
+        long time = System.currentTimeMillis();
         {
             AtomicInteger count = new AtomicInteger();
 
             for (int i = 0; i < nTests; ++i) {
-                pool.push(() -> {
-                    count.getAndIncrement();
-                });
+                pool.push(count::getAndIncrement);
             }
         }
         long poolTime = System.currentTimeMillis() - time;

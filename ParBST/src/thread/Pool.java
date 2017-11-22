@@ -1,16 +1,15 @@
 package thread;
 
+import java.util.Arrays;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Pool {
-    private final int nThreads;
     private final Worker[] workers;
-    private final LinkedBlockingQueue queue;
+    private final LinkedBlockingQueue<Runnable> queue;
 
     public Pool(int nThreads) {
-        this.nThreads = nThreads;
         workers = new Worker[nThreads];
-        queue = new LinkedBlockingQueue();
+        queue = new LinkedBlockingQueue<>();
 
         for (int i = 0; i < nThreads; ++i) {
             workers[i] = new Worker();
@@ -26,7 +25,7 @@ public class Pool {
     }
 
     public void join() {
-        while (!queue.isEmpty());
+        while (Arrays.stream(workers).anyMatch((worker) -> worker.busy));
     }
 
     public final int size() {
@@ -38,6 +37,8 @@ public class Pool {
     }
 
     private class Worker extends Thread {
+        boolean busy = false;
+
         public void run() {
             Runnable task;
 
@@ -45,12 +46,14 @@ public class Pool {
                 synchronized (queue) {
                     while (queue.isEmpty()) {
                         try {
+                            busy = false;
                             queue.wait();
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
-                    task = (Runnable) queue.poll();
+                    busy = true;
+                    task = queue.poll();
                 }
 
                 try {

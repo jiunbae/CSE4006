@@ -1,81 +1,78 @@
 package collections.concurrent;
 
+import collections.interfaces.Tree;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.*;
 
 public class BinaryTreeTest {
-    static BinaryTree<Integer> tree;
-    static Random random;
-    static Set<Integer> numbers;
-    static final int testSize = 100000;
+    private static Tree<Integer> tree;
+    private static thread.Pool pool;
 
-    static thread.Pool pool;
+    private static final int testSize = 1000000;
+    private static List<Integer> numbers;
 
     @BeforeClass
-    public static void makeInstance() throws Exception {
-        tree = new BinaryTree<>();
-        random = new Random();
-        numbers = new HashSet<>();
-        while (numbers.size() < testSize) {
-            numbers.add(random.nextInt(testSize * 10));
-        }
+    public static void init() throws Exception {
+        numbers = IntStream.range(0, testSize).boxed().collect(Collectors.toList());
+        Collections.shuffle(numbers);
 
         pool = new thread.Pool(8);
     }
 
+    @Before
+    public void makeInstance() throws Exception {
+        tree = new BinaryTree<>();
+    }
+
     @Test
     public void insert() throws Exception {
-        for (int i : numbers) {
-            tree.insert(i);
-        }
-
-        for (int i : numbers) {
-            assertTrue(tree.search(i));
-        }
+        numbers.forEach((e) -> tree.insert(e));
+        numbers.forEach((e) -> assertTrue(tree.search(e)));
+        assertEquals(numbers.size(), tree.size());
     }
 
     @Test
     public void insertParallel() throws Exception {
-        for (int i : numbers) {
-            pool.push(() -> tree.insert(i));
-        }
-
+        numbers.forEach((e) -> pool.push(() -> tree.insert(e)));
         pool.join();
-
-        for (int i : numbers) {
-            assertTrue(tree.search(i));
-        }
+        numbers.forEach((e) -> assertTrue(tree.search(e)));
+        assertEquals(numbers.size(), tree.size());
     }
 
     @Test
     public void delete() throws Exception {
-        for (int i : numbers) {
-            tree.insert(i);
-        }
-
-        for (int i : numbers) {
-            assertTrue(tree.search(i));
-            tree.delete(i);
-            assertFalse(tree.search(i));
-        }
+        numbers.forEach((e) -> tree.insert(e));
+        numbers.forEach((e) -> tree.delete(e));
+        numbers.forEach((e) -> assertFalse(tree.search(e)));
+        assertEquals(0, tree.size());
     }
 
     @Test
     public void deleteParallel() throws Exception {
-        for (int i : numbers) {
-            tree.insert(i);
-        }
+        numbers.forEach((e) -> tree.insert(e));
+        numbers.forEach((e) -> pool.push(() -> tree.delete(e)));
+        pool.join();
+        numbers.forEach((e) -> assertFalse(tree.search(e)));
+        assertEquals(0, tree.size());
+    }
 
-        for (int i : numbers) {
-            pool.push(() -> tree.delete(i));
-        }
+    @Test
+    public void search() throws Exception {
+        numbers.forEach((e) -> tree.insert(e));
+        numbers.forEach((e) -> tree.search(e));
+    }
 
-        for (int i : numbers) {
-            assertFalse(tree.search(i));
-        }
+    @Test
+    public void searchParallel() throws Exception {
+        numbers.forEach((e) -> tree.insert(e));
+        numbers.forEach((e) -> pool.push(() -> assertTrue(tree.search(e))));
+        pool.join();
     }
 }
