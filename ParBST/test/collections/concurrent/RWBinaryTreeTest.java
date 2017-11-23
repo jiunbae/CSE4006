@@ -4,8 +4,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -20,10 +22,16 @@ public class RWBinaryTreeTest {
 
     @BeforeClass
     public static void init() throws Exception {
-        numbers = IntStream.range(0, testSize).boxed().collect(Collectors.toList());
-        Collections.shuffle(numbers);
+        Random random = new Random(0);
+        numbers = new ArrayList<>();
+        for (int i = 0; i < testSize; ++i) {
+            numbers.add(random.nextInt(testSize * 2));
+        }
 
-        pool = new concurrent.Pool(2);
+        //numbers = IntStream.range(0, testSize).boxed().collect(Collectors.toList());
+        //Collections.shuffle(numbers);
+
+        pool = new concurrent.Pool(4);
     }
 
     @Before
@@ -41,8 +49,6 @@ public class RWBinaryTreeTest {
     public void insertParallel() throws Exception {
         numbers.forEach((e) -> pool.push(() -> tree.insert(e)));
         pool.join();
-        assertEquals(numbers.size(), tree.size());
-        System.out.println(tree.size());
         numbers.forEach((e) -> assertTrue(tree.search(e)));
     }
 
@@ -58,8 +64,6 @@ public class RWBinaryTreeTest {
         numbers.forEach((e) -> tree.insert(e));
         numbers.forEach((e) -> pool.push(() -> tree.delete(e)));
         pool.join();
-        assertEquals(0, tree.size());
-        System.out.println(tree.size());
         numbers.forEach((e) -> assertFalse(tree.search(e)));
     }
 

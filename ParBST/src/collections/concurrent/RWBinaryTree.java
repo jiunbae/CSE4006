@@ -1,68 +1,81 @@
 package collections.concurrent;
 
 import collections.interfaces.Tree;
-import javafx.util.Pair;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
     public class LockableNode extends Tree.Node<T> {
-        final ReentrantReadWriteLock locker;
+        final ReadWriteLock locker;
+        List<Long> writers;
+        int readers;
         LockableNode left;
         LockableNode right;
 
         public LockableNode(T data) {
             super(data);
-            locker = new ReentrantReadWriteLock(true);
+            locker = new ReentrantReadWriteLock();
+            writers = new LinkedList<>();
+            readers = 0;
         }
 
         void lock() {
+            System.out.println(String.format("tid: %d, item: %s, read: try to read", Thread.currentThread().getId(), this.data));
+            synchronized (writers) {
+                System.out.println(String.format("tid: %d, item: %s, read: wait writing", Thread.currentThread().getId(), this.data));
+                while (!writers.isEmpty());
+                System.out.println(String.format("tid: %d, item: %s, read: waiting done", Thread.currentThread().getId(), this.data));
+            }
             locker.readLock().lock();
+            System.out.println(String.format("tid: %d, item: %s, read: acquire read", Thread.currentThread().getId(), this.data));
+            readers += 1;
+            System.out.println(String.format("now read: %d", readers));
         }
 
         void unlock() {
+            System.out.println(String.format("tid: %d, item: %s, read: try to unlock read", Thread.currentThread().getId(), this.data));
             locker.readLock().unlock();
+            System.out.println(String.format("tid: %d, item: %s, read: release read", Thread.currentThread().getId(), this.data));
+            readers -= 1;
+            System.out.println(String.format("now read: %d", readers));
         }
 
         void write(final Consumer<LockableNode> f) {
-            int count = releaseReadLock();
+            unlock();
+            synchronized (writers) {
+                System.out.println(String.format("tid: %d, item: %s, write: try to write", Thread.currentThread().getId(), this.data));
+                writers.add(Thread.currentThread().getId());
+                while (!writers.get(0).equals(Thread.currentThread().getId()));
+                System.out.println(String.format("tid: %d, item: %s, write:  acquire write", Thread.currentThread().getId(), this.data));
+            }
+            while (readers > 0);
             locker.writeLock().lock();
             try {
+                System.out.println(String.format("tid: %d, item: %s, write:  start write", Thread.currentThread().getId(), this.data));
                 f.accept(this);
-                acquireReadLock(count);
             } finally {
+                synchronized (writers) {
+                    writers.remove(0);
+                }
                 locker.writeLock().unlock();
-            }
-        }
-
-        private int releaseReadLock() {
-            final int holdCount = locker.getReadLockCount();
-            for (int i = 0; i < holdCount; i++) {
-                locker.readLock().unlock();
-            }
-            return holdCount;
-        }
-
-        private void acquireReadLock(int count) {
-            for (int i = 0; i < count; ++i) {
-                locker.readLock().lock();
+                lock();
+                System.out.println(String.format("tid: %d, item: %s, write:  write done", Thread.currentThread().getId(), this.data));
             }
         }
     }
 
     private final Lock lock;
-    private final AtomicInteger size;
     private LockableNode root;
 
     public RWBinaryTree() {
         lock = new ReentrantLock();
         root = null;
-        size = new AtomicInteger(0);
     }
 
     @Override
@@ -85,9 +98,11 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
                     LockableNode next = compare > 0 ? cur.left : cur.right;
                     if (next == null) {
                         cur.write((c) -> {
+                            System.out.println(String.format("tid: %d, item: %s write", Thread.currentThread().getId(), data));
                             if (compare > 0) c.left = new LockableNode(data);
                             else c.right = new LockableNode(data);
                         });
+                        cur.unlock();
                         break;
                     }
 
@@ -97,7 +112,6 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
                 }
             }
         }
-        size.getAndIncrement();
         return true;
     }
 
@@ -123,13 +137,18 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
                     if (compare == 0) {
                         LockableNode rep = replacement(cur);
 
-                        compare = par.data.compareTo(data);
-                        if (compare > 0) par.left = rep;
-                        else par.right = rep;
+                        int finalCompare = par.data.compareTo(data);
+                        par.write((p) -> {
+                            if (finalCompare > 0) p.left = rep;
+                            else p.right = rep;
+                        });
 
                         if (rep != null) {
-                            rep.left = cur.left;
-                            rep.right = cur.right;
+                            LockableNode finalCur = cur;
+                            rep.write((r) -> {
+                                r.left = finalCur.left;
+                                r.right= finalCur.right;
+                            });
                         }
 
                         cur.unlock();
@@ -152,8 +171,12 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
                 root = rep;
 
                 if (rep != null) {
-                    rep.left = cur.left;
-                    rep.right = cur.right;
+                    LockableNode finalCur = cur;
+                    rep.lock();
+                    rep.write((r) -> {
+                        r.left = finalCur.left;
+                        r.right= finalCur.right;
+                    });
                 }
 
                 cur.unlock();
@@ -161,7 +184,6 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
             }
 
         }
-        size.decrementAndGet();
         return true;
     }
 
@@ -181,13 +203,14 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
             }
 
             if (cur.left != null) cur.left.lock();
-
-            if (par == sub) par.left = cur.left;
-            else {
-                par.right = cur.left;
-                par.unlock();
-            }
-
+            LockableNode finalCur = cur;
+            par.write((p) -> {
+               finalCur.write((c) -> {
+                   if (p == sub) p.left = c.left;
+                   else p.right = c.left;
+               });
+            });
+            if (par != sub) par.unlock();
             if (cur.left != null) cur.left.unlock();
 
             cur.unlock();
@@ -204,13 +227,14 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
             }
 
             if (cur.right != null) cur.right.lock();
-
-            if (par == sub) par.right = cur.right;
-            else {
-                par.left = cur.right;
-                par.unlock();
-            }
-
+            LockableNode finalCur = cur;
+            par.write((p) -> {
+                finalCur.write((c) -> {
+                    if (p == sub) p.right = c.right;
+                    else p.left = c.right;
+                });
+            });
+            if (par != sub) par.unlock();
             if (cur.right != null) cur.right.unlock();
 
             cur.unlock();
@@ -251,10 +275,6 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
                 }
             }
         }
-    }
-
-    public int size() {
-        return this.size.get();
     }
 
     @Override
