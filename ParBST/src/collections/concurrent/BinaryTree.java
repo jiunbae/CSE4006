@@ -3,6 +3,7 @@ package collections.concurrent;
 import collections.interfaces.Tree;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -36,6 +37,42 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
         size = new AtomicInteger(0);
     }
 
+    /**
+     * Acquire ReadLock
+     * @param node
+     */
+    private void acquireGuard(LockableNode node) {
+        node.lock();
+    }
+
+    private void releaseGuard(LockableNode node) {
+        node.unlock();
+    }
+
+    /**
+     * Acquire WriterLock
+     * @param node
+     */
+    private void acquireBarrier(LockableNode node) {
+        node.lock();
+    }
+
+    private void releaseBarrier(LockableNode node) {
+        node.unlock();
+    }
+
+    /**
+     * Acquire WriterLock on ReaderLock
+     * @param node
+     */
+    private void acquireBarrierOverGuard(LockableNode node) {
+
+    }
+
+    private void releaseBarrierOverGuard(LockableNode node) {
+
+    }
+
     @Override
     public boolean insert(T data) {
         lock.lock();
@@ -44,25 +81,26 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
             lock.unlock();
         } else {
             LockableNode cur = root;
-            cur.lock();
+            acquireGuard(cur);
             lock.unlock();
 
             while (true) {
                 int compare = cur.data.compareTo(data);
                 if (compare == 0) {
-                    cur.unlock();
+                    releaseGuard(cur);
                     return false;
                 } else {
                     LockableNode next = compare > 0 ? cur.left : cur.right;
                     if (next == null) {
+                        acquireBarrierOverGuard(cur);
                         if (compare > 0) cur.left = new LockableNode(data);
                         else cur.right = new LockableNode(data);
-                        cur.unlock();
+                        releaseBarrier(cur);
                         break;
                     }
 
-                    next.lock();
-                    cur.unlock();
+                    acquireGuard(next);
+                    releaseGuard(cur);
                     cur = next;
                 }
             }
@@ -79,13 +117,13 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
         } else {
             LockableNode cur = root;
             LockableNode par;
-            cur.lock();
+            acquireGuard(cur);
 
             int compare = cur.data.compareTo(data);
             if (compare != 0) {
                 par = cur;
                 cur = compare > 0 ? cur.left : cur.right;
-                cur.lock();
+                acquireGuard(cur);
                 lock.unlock();
 
                 while (true) {
@@ -98,15 +136,17 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
                         else par.right = rep;
 
                         if (rep != null) {
+                            acquireBarrier(rep);
                             rep.left = cur.left;
                             rep.right = cur.right;
+                            releaseBarrier(rep);
                         }
 
-                        cur.unlock();
-                        par.unlock();
+                        releaseGuard(cur);
+                        releaseGuard(par);
                         break;
                     } else {
-                        par.unlock();
+                        releaseGuard(par);
                         par = cur;
 
                         compare = cur.data.compareTo(data);
@@ -115,18 +155,20 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
                     }
 
                     if (cur == null) return false;
-                    else cur.lock();
+                    else acquireGuard(cur);
                 }
             } else {
                 LockableNode rep = replacement(cur);
                 root = rep;
 
                 if (rep != null) {
+                    acquireBarrier(rep);
                     rep.left = cur.left;
                     rep.right = cur.right;
+                    releaseBarrier(rep);
                 }
 
-                cur.unlock();
+                releaseGuard(cur);
                 lock.unlock();
             }
 
@@ -141,50 +183,48 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
 
         if (sub.left != null) {
             cur = sub.left;
-            cur.lock();
+            acquireGuard(cur);
 
             while (cur.right != null) {
-                if (par != sub) par.unlock();
+                if (par != sub) releaseGuard(par);
                 par = cur;
                 cur = cur.right;
-                cur.lock();
+                acquireGuard(cur);
             }
 
-            if (cur.left != null) cur.left.lock();
-
-            if (par == sub) par.left = cur.left;
-            else {
+            acquireBarrierOverGuard(par);
+            if (cur.left != null) acquireGuard(cur.left);
+            if (par == sub) {
+                par.left = cur.left;
+                releaseBarrierOverGuard(par);
+            } else {
                 par.right = cur.left;
-                par.unlock();
+                releaseBarrier(par);
             }
-
-            if (cur.left != null) cur.left.unlock();
-
-            cur.unlock();
-
+            if (cur.left != null) releaseGuard(cur.left);
+            releaseGuard(cur);
         } else if (sub.right != null) {
             cur = sub.right;
-            cur.lock();
+            acquireGuard(cur);
 
             while (cur.left != null) {
                 if (par != sub) par.unlock();
                 par = cur;
                 cur = cur.left;
-                cur.lock();
+                acquireGuard(cur);
             }
 
-            if (cur.right != null) cur.right.lock();
-
-            if (par == sub) par.right = cur.right;
-            else {
+            acquireBarrierOverGuard(par);
+            if (cur.right != null) acquireGuard(cur.right);
+            if (par == sub) {
+                par.right = cur.right;
+                releaseBarrierOverGuard(par);
+            } else {
                 par.left = cur.right;
-                par.unlock();
+                releaseGuard(par);
             }
-
-            if (cur.right != null) cur.right.unlock();
-
-            cur.unlock();
-
+            if (cur.right != null) releaseGuard(cur.right);
+            releaseGuard(cur);
         } else {
             return null;
         }
@@ -199,23 +239,22 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
             return false;
         } else {
             LockableNode cur = root;
-            cur.lock();
+            acquireGuard(cur);
             lock.unlock();
 
             while (true) {
                 int compare = cur.data.compareTo(data);
                 if (compare == 0) {
-                    cur.unlock();
+                    releaseGuard(cur);
                     return true;
                 } else {
                     LockableNode next = compare > 0 ? cur.left : cur.right;
                     if (next == null) {
-                        cur.unlock();
+                        releaseGuard(cur);
                         return false;
                     }
-
-                    next.lock();
-                    cur.unlock();
+                    acquireGuard(next);
+                    releaseGuard(cur);
                     cur = next;
                 }
             }
@@ -230,28 +269,42 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
     @Override
     public void preOrderTraversal(final Consumer<Node<T>> f) {
         lock.lock();
-        preOrderHelper(root, f);
+        if (root != null) {
+            acquireGuard(root);
+            lock.unlock();
+            preOrderHelper(root, f);
+            return;
+        }
         lock.unlock();
     }
 
-    private void preOrderHelper(Node r, final Consumer<Node<T>> f) {
-        if (r == null) return;
-        f.accept(r);
-        preOrderHelper(r.left, f);
-        preOrderHelper(r.right, f);
+    private void preOrderHelper(LockableNode node, final Consumer<Node<T>> f) {
+        if (node == null) return;
+        acquireGuard(node);
+        f.accept(node);
+        releaseGuard(node);
+        preOrderHelper(node.left, f);
+        preOrderHelper(node.right, f);
     }
 
     @Override
     public void inOrderTraversal(final Consumer<Node<T>> f) {
         lock.lock();
-        inOrderHelper(root, f);
+        if (root != null) {
+            acquireGuard(root);
+            lock.unlock();
+            inOrderHelper(root, f);
+            return;
+        }
         lock.unlock();
     }
 
-    private void inOrderHelper(Node r, final Consumer<Node<T>> f) {
-        if (r == null) return;
-        inOrderHelper(r.left, f);
-        f.accept(r);
-        inOrderHelper(r.right, f);
+    private void inOrderHelper(LockableNode node, final Consumer<Node<T>> f) {
+        if (node == null) return;
+        inOrderHelper(node.left, f);
+        acquireGuard(node);
+        f.accept(node);
+        releaseGuard(node);
+        inOrderHelper(node.right, f);
     }
 }

@@ -23,7 +23,7 @@ public class BinaryTreeTest {
         numbers = IntStream.range(0, testSize).boxed().collect(Collectors.toList());
         Collections.shuffle(numbers);
 
-        pool = new thread.Pool(8);
+        pool = new thread.Pool(4);
     }
 
     @Before
@@ -34,24 +34,24 @@ public class BinaryTreeTest {
     @Test
     public void insert() throws Exception {
         numbers.forEach((e) -> tree.insert(e));
-        numbers.forEach((e) -> assertTrue(tree.search(e)));
         assertEquals(numbers.size(), tree.size());
+        numbers.forEach((e) -> assertTrue(tree.search(e)));
     }
 
     @Test
     public void insertParallel() throws Exception {
         numbers.forEach((e) -> pool.push(() -> tree.insert(e)));
         pool.join();
-        numbers.forEach((e) -> assertTrue(tree.search(e)));
         assertEquals(numbers.size(), tree.size());
+        numbers.forEach((e) -> assertTrue(tree.search(e)));
     }
 
     @Test
     public void delete() throws Exception {
         numbers.forEach((e) -> tree.insert(e));
         numbers.forEach((e) -> tree.delete(e));
-        numbers.forEach((e) -> assertFalse(tree.search(e)));
         assertEquals(0, tree.size());
+        numbers.forEach((e) -> assertFalse(tree.search(e)));
     }
 
     @Test
@@ -59,8 +59,8 @@ public class BinaryTreeTest {
         numbers.forEach((e) -> tree.insert(e));
         numbers.forEach((e) -> pool.push(() -> tree.delete(e)));
         pool.join();
-        numbers.forEach((e) -> assertFalse(tree.search(e)));
         assertEquals(0, tree.size());
+        numbers.forEach((e) -> assertFalse(tree.search(e)));
     }
 
     @Test
