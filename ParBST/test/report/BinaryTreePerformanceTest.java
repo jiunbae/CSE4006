@@ -22,7 +22,7 @@ public class BinaryTreePerformanceTest {
 
     private int threadSize;
     private int[] searchRatio;
-    private static final int testSize = 1000000;
+    private static final int testSize = 100000;
     private static List<Integer> numbers;
 
     @BeforeClass

@@ -40,6 +40,5 @@ public class RWBinaryTree<T extends Comparable<? super T>> extends BinaryTree<T>
     public RWBinaryTree() {
         lock = new ReentrantReadWriteLock();
         root = null;
-        size = new AtomicInteger(0);
     }
 }
