@@ -6,18 +6,15 @@ import java.util.function.Consumer;
 
 public class BinaryTree<T extends Comparable<? super T>> implements collections.interfaces.Tree<T> {
     private Node<T> root;
-    private int size;
 
     public BinaryTree() {
         root = null;
-        size = 0;
     }
 
     @Override
     public boolean insert(T data) {
         try {
             root = insert(root, data);
-            size += 1;
             return true;
         } catch (RuntimeException e) {
             return false;
@@ -58,7 +55,6 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
     public boolean delete(T data) {
         try {
             root = delete(root, data);
-            size -= 1;
             return true;
         } catch (RuntimeException e) {
             return false;
@@ -93,11 +89,6 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
             p = p.right;
         }
         return p.data;
-    }
-
-    @Override
-    public int size() {
-        return this.size;
     }
 
     @Override

@@ -13,12 +13,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.*;
-
 @RunWith(Parameterized.class)
 public class BinaryTreePerformanceTest {
     private Tree<Integer> tree;
-    private thread.Pool pool;
+    private concurrent.Pool pool;
 
     private int threadSize;
     private int[] searchRatio;
@@ -34,13 +32,13 @@ public class BinaryTreePerformanceTest {
     @Before
     public void makeInstance() throws Exception {
         tree = new BinaryTree<>();
-        pool = new thread.Pool(threadSize);
+        pool = new concurrent.Pool(threadSize);
     }
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
-                {1}, {2}, {4}, {8}, {16}
+                {1}, {2}, {4}, {8}
         });
     }
 
@@ -65,8 +63,6 @@ public class BinaryTreePerformanceTest {
             numbers.forEach((e) -> pool.push(() -> tree.insert(e)));
             pool.join();
         });
-
-        assertEquals(numbers.size(), tree.size());
     }
 
     @Test
@@ -75,8 +71,6 @@ public class BinaryTreePerformanceTest {
             numbers.forEach((e) -> pool.push(() -> tree.insert(e)));
             pool.join();
         });
-
-        assertEquals(numbers.size(), tree.size());
 
         long[] result = new long[this.searchRatio.length];
         for (int i = 0; i < searchRatio.length; ++i) {

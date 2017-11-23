@@ -17,7 +17,6 @@ public interface Tree<T extends Comparable<? super T>> {
     boolean insert(T data);
     boolean delete(T data);
     boolean search(T data);
-    int size();
 
     void preOrderTraversal(final Consumer<Node<T>> f);
     void inOrderTraversal(final Consumer<Node<T>> f);

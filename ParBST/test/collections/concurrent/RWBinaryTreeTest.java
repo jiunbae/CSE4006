@@ -1,21 +1,21 @@
 package collections.concurrent;
 
-import collections.interfaces.Tree;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.junit.Assert.*;
 
-public class BinaryTreeTest {
-    private static Tree<Integer> tree;
+public class RWBinaryTreeTest {
+    private static RWBinaryTree<Integer> tree;
     private static concurrent.Pool pool;
 
-    private static final int testSize = 100000;
+    private static final int testSize = 10;
     private static List<Integer> numbers;
 
     @BeforeClass
@@ -28,7 +28,7 @@ public class BinaryTreeTest {
 
     @Before
     public void makeInstance() throws Exception {
-        tree = new BinaryTree<>();
+        tree = new RWBinaryTree<>();
     }
 
     @Test
@@ -41,6 +41,8 @@ public class BinaryTreeTest {
     public void insertParallel() throws Exception {
         numbers.forEach((e) -> pool.push(() -> tree.insert(e)));
         pool.join();
+        assertEquals(numbers.size(), tree.size());
+        System.out.println(tree.size());
         numbers.forEach((e) -> assertTrue(tree.search(e)));
     }
 
@@ -56,6 +58,8 @@ public class BinaryTreeTest {
         numbers.forEach((e) -> tree.insert(e));
         numbers.forEach((e) -> pool.push(() -> tree.delete(e)));
         pool.join();
+        assertEquals(0, tree.size());
+        System.out.println(tree.size());
         numbers.forEach((e) -> assertFalse(tree.search(e)));
     }
 

@@ -1,4 +1,4 @@
-package thread;
+package concurrent;
 
 import java.util.Arrays;
 import java.util.concurrent.LinkedBlockingQueue;

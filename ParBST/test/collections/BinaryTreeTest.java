@@ -35,7 +35,6 @@ public class BinaryTreeTest {
             tree.insert(i);
             assertTrue(tree.search(i));
         }
-        assertEquals(numbers.size(), tree.size());
     }
 
     @Test
@@ -57,7 +56,6 @@ public class BinaryTreeTest {
             tree.delete(i);
             assertFalse(tree.search(i));
         }
-        assertEquals(0, tree.size());
     }
 
     @Test

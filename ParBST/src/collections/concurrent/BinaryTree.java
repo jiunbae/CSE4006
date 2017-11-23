@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class BinaryTree<T extends Comparable<? super T>> implements collections.interfaces.Tree<T> {
+public class BinaryTree<T extends Comparable<? super T>> implements Tree<T> {
     public class LockableNode extends Tree.Node<T> {
         ReentrantLock locker;
         LockableNode left;
@@ -28,12 +28,10 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
 
     private ReentrantLock lock;
     private LockableNode root;
-    private AtomicInteger size;
 
     public BinaryTree() {
         lock = new ReentrantLock();
         root = null;
-        size = new AtomicInteger(0);
     }
 
     @Override
@@ -67,7 +65,6 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
                 }
             }
         }
-        size.getAndIncrement();
         return true;
     }
 
@@ -131,7 +128,6 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
             }
 
         }
-        size.decrementAndGet();
         return true;
     }
 
@@ -221,11 +217,6 @@ public class BinaryTree<T extends Comparable<? super T>> implements collections.
                 }
             }
         }
-    }
-
-    @Override
-    public int size() {
-        return this.size.get();
     }
 
     @Override
