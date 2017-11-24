@@ -10,7 +10,7 @@ public interface List<T> extends Iterable<T> {
 
         @Override
         public boolean hasNext() {
-            return next != null;
+            return next.next != null;
         }
 
         @Override
