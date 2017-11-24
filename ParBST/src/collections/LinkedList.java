@@ -2,6 +2,10 @@ package collections;
 
 import collections.interfaces.List;
 
+import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.function.Consumer;
+
 public class LinkedList<T> implements List<T> {
     private Node<T> head;
     private Node<T> last;
@@ -39,15 +43,7 @@ public class LinkedList<T> implements List<T> {
 
     @Override
     public boolean add(T item) {
-        if (head == null) {
-            last = head = new Node<>(item);
-            counter += 1;
-            return true;
-        }
-
-        last = last.makeNext(item);
-        counter += 1;
-        return true;
+        return addNode(item) != null;
     }
 
     @Override
@@ -56,6 +52,19 @@ public class LinkedList<T> implements List<T> {
         head = head.makeFront(item);
         counter += 1;
         return true;
+    }
+
+    @Override
+    public Node<T> addNode(T item) {
+        if (head == null) {
+            Node<T> child = new Node<>(item);
+            head = last = child;
+            counter += 1;
+            return child;
+        }
+
+        counter += 1;
+        return last = last.makeNext(item);
     }
 
     @Override
@@ -113,6 +122,22 @@ public class LinkedList<T> implements List<T> {
         for (Node<T> node = head; node != null; node = node.next)
             result[i++] = node.item;
         return result;
+    }
+
+    @Override
+    public Iterator iterator() {
+        return new Iterator(head);
+    }
+
+    @Override
+    public void forEach(Consumer<? super T> action) {
+        for (Iterator it = iterator(); it.hasNext();)
+            action.accept((T) it.next());
+    }
+
+    @Override
+    public Spliterator<T> spliterator() {
+        return null;
     }
 
     private Node<T> getNode(int index) {

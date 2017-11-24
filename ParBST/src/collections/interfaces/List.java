@@ -1,6 +1,25 @@
 package collections.interfaces;
 
-public interface List<T> {
+public interface List<T> extends Iterable<T> {
+    class Iterator<F> implements java.util.Iterator<F> {
+        Node next;
+
+        public Iterator(Node next) {
+            this.next = next;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        @Override
+        public F next() {
+            next = next.next;
+            return (F) next.item;
+        }
+    }
+
     class Node<F> {
         public F item;
         public Node<F> front;
@@ -9,6 +28,11 @@ public interface List<T> {
         public Node(F item) {
             this.item = item;
             front = next = null;
+        }
+
+        public void remove() {
+            if (this.front != null) front.next = next;
+            if (this.next != null) next.front = front;
         }
 
         public Node<F> makeNext(F item) {
@@ -29,6 +53,7 @@ public interface List<T> {
     boolean add(int index, T item);
     boolean add(T item);
     boolean addFirst(T item);
+    Node<T> addNode(T item);
 
     T get(int index);
     T getFirst();
@@ -40,4 +65,6 @@ public interface List<T> {
 
     int size();
     Object[] toArray();
+
+    Iterator iterator();
 }

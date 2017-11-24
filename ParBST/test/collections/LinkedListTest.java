@@ -5,6 +5,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -54,6 +55,7 @@ public class LinkedListTest {
     @Test
     public void get() throws Exception {
         for (int i = 0; i < numbers.size(); ++i) {
+            if (i % 1000 == 0) System.out.println(i);
             assertEquals(numbers.get(i), list.get(i));
         }
     }
@@ -98,6 +100,14 @@ public class LinkedListTest {
         Object[] array = list.toArray();
         for (int i = 0; i < numbers.size(); ++i) {
             assertEquals(array[i], numbers.get(i));
+        }
+    }
+
+    @Test
+    public void iterable() throws Exception {
+        int counter = 0;
+        for (Iterator it = list.iterator(); it.hasNext();) {
+
         }
     }
 }

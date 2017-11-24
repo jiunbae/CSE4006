@@ -1,9 +1,12 @@
 package collections.concurrent;
 
 import collections.interfaces.Tree;
+import concurrent.locks.ReadWriteOrderedLock;
+import concurrent.locks.ReentrantReadWriteOrderedLock;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
@@ -12,60 +15,32 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
     public class LockableNode extends Tree.Node<T> {
-        final ReadWriteLock locker;
-        List<Long> writers;
-        int readers;
         LockableNode left;
         LockableNode right;
 
+        final ReadWriteLock locker;
+
         public LockableNode(T data) {
             super(data);
-            locker = new ReentrantReadWriteLock();
-            writers = new LinkedList<>();
-            readers = 0;
+            locker = new ReentrantReadWriteOrderedLock();
         }
 
         void lock() {
-            System.out.println(String.format("tid: %d, item: %s, read: try to read", Thread.currentThread().getId(), this.data));
-            synchronized (writers) {
-                System.out.println(String.format("tid: %d, item: %s, read: wait writing", Thread.currentThread().getId(), this.data));
-                while (!writers.isEmpty());
-                System.out.println(String.format("tid: %d, item: %s, read: waiting done", Thread.currentThread().getId(), this.data));
-            }
             locker.readLock().lock();
-            System.out.println(String.format("tid: %d, item: %s, read: acquire read", Thread.currentThread().getId(), this.data));
-            readers += 1;
-            System.out.println(String.format("now read: %d", readers));
         }
 
         void unlock() {
-            System.out.println(String.format("tid: %d, item: %s, read: try to unlock read", Thread.currentThread().getId(), this.data));
             locker.readLock().unlock();
-            System.out.println(String.format("tid: %d, item: %s, read: release read", Thread.currentThread().getId(), this.data));
-            readers -= 1;
-            System.out.println(String.format("now read: %d", readers));
         }
 
         void write(final Consumer<LockableNode> f) {
-            unlock();
-            synchronized (writers) {
-                System.out.println(String.format("tid: %d, item: %s, write: try to write", Thread.currentThread().getId(), this.data));
-                writers.add(Thread.currentThread().getId());
-                while (!writers.get(0).equals(Thread.currentThread().getId()));
-                System.out.println(String.format("tid: %d, item: %s, write:  acquire write", Thread.currentThread().getId(), this.data));
-            }
-            while (readers > 0);
+            locker.readLock().unlock();
             locker.writeLock().lock();
             try {
-                System.out.println(String.format("tid: %d, item: %s, write:  start write", Thread.currentThread().getId(), this.data));
                 f.accept(this);
             } finally {
-                synchronized (writers) {
-                    writers.remove(0);
-                }
                 locker.writeLock().unlock();
-                lock();
-                System.out.println(String.format("tid: %d, item: %s, write:  write done", Thread.currentThread().getId(), this.data));
+                locker.readLock().lock();
             }
         }
     }
@@ -98,7 +73,6 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
                     LockableNode next = compare > 0 ? cur.left : cur.right;
                     if (next == null) {
                         cur.write((c) -> {
-                            System.out.println(String.format("tid: %d, item: %s write", Thread.currentThread().getId(), data));
                             if (compare > 0) c.left = new LockableNode(data);
                             else c.right = new LockableNode(data);
                         });

@@ -1,20 +1,13 @@
 package concurrent.locks;
 
-import javafx.util.Pair;
+import collections.LinkedList;
+import collections.interfaces.List;
 
-import java.util.AbstractMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class ReentrantReadWriteOrderedLock implements  ReadWriteOrderedLock{
-    final ReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
-    final Lock updateMutex = new ReentrantLock();
-
     final ReadLock readLock = new ReadLock();
     final WriteLock writeLock = new WriteLock();
 
@@ -33,44 +26,47 @@ public class ReentrantReadWriteOrderedLock implements  ReadWriteOrderedLock{
     }
 
     abstract class OrderedLock implements Lock {
-        final Lock mutex = new ReentrantLock();
-        final Condition reader = mutex.newCondition();
-        final Condition writer = mutex.newCondition();
-        final ConcurrentLinkedQueue<Map.Entry<Long, LockType>> waiter
-                = new ConcurrentLinkedQueue<>();
+        final Lock mutex;
+        final Condition reader;
+        final Condition writer;
+        final List<Map.Entry<Long, LockType>> waiter;
 
-        boolean writing = false;
-        int readers = 0;
+        boolean writing;
+        int readers;
+        List.Node it;
 
         final LockType type;
 
         public OrderedLock(LockType type) {
+            mutex = new ReentrantLock();
+            reader = mutex.newCondition();
+            writer = mutex.newCondition();
+            waiter = new LinkedList<>();
+            writing = false;
+            readers = 0;
+            it = null;
             this.type = type;
         }
 
         @Override
         public void lock() {
-            synchronized (writer) {
-                try {
-                    waiter.add(new AbstractMap.SimpleEntry<>(Thread.currentThread().getId(), type));
-                    do {
-                        while (!validate())
-                            writer.wait();
-                    } while (writing);
-                    afterLock();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            mutex.lock();
+            try {
+                it = waiting();
+                do {
+                    while (!validate())
+                        writer.await();
+                } while (writing);
+                afterLock();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                mutex.unlock();
             }
         }
 
         @Override
         public void lockInterruptibly() throws InterruptedException {
-            throw new UnsupportedOperationException("This lock does not support method");
-        }
-
-        @Override
-        public boolean tryLock() {
             throw new UnsupportedOperationException("This lock does not support method");
         }
 
@@ -82,6 +78,10 @@ public class ReentrantReadWriteOrderedLock implements  ReadWriteOrderedLock{
         @Override
         public Condition newCondition() {
             throw new UnsupportedOperationException("This lock does not support method");
+        }
+
+        List.Node waiting() {
+            return waiter.addNode(new AbstractMap.SimpleEntry<>(Thread.currentThread().getId(), type));
         }
 
         abstract void afterLock() throws InterruptedException;
@@ -100,23 +100,36 @@ public class ReentrantReadWriteOrderedLock implements  ReadWriteOrderedLock{
         }
 
         @Override
+        public boolean tryLock() {
+            mutex.lock();
+            try {
+                if (writing) return false;
+                waiting();
+                afterLock();
+                return true;
+            } finally {
+                mutex.unlock();
+            }
+        }
+
+        @Override
         public void unlock() {
             int local_readers;
             boolean local_writing;
 
-            synchronized (waiter) {
-                for (Iterator<Map.Entry<Long, LockType>> it = waiter.iterator(); it.hasNext();) {
-                    Map.Entry<Long, LockType> entry = it.next();
-                    if (entry.getValue().equals(LockType.WRITE)) break;
-                    it.remove();
-                }
-                local_readers = -- readers;
-                local_writing = writing;
+            mutex.lock();
+            it.remove();
+            local_readers = --readers;
+            local_writing = writing;
+            try {
+            } finally {
+                mutex.unlock();
             }
 
-            if (waiter.isEmpty()) return;
-            if (local_writing && local_readers == 0) reader.notifyAll();
-            else if (!local_writing) writer.notify();
+            if (local_writing && local_readers == 0)
+                reader.signalAll();
+            else if (!local_writing)
+                writer.signalAll();
         }
 
         @Override
@@ -137,31 +150,36 @@ public class ReentrantReadWriteOrderedLock implements  ReadWriteOrderedLock{
         @Override
         public void afterLock() throws InterruptedException {
             writing = true;
-            synchronized (reader) {
-                while (readers > 0)
-                    reader.wait();
+            while (readers > 0)
+                reader.await();
+        }
+
+        @Override
+        public boolean tryLock() {
+            mutex.lock();
+            try {
+                if (writing || readers > 0) return false;
+                waiting();
+                return writing = true;
+            } finally {
+                mutex.unlock();
             }
         }
 
         @Override
         public void unlock() {
-            synchronized (waiter) {
+            mutex.lock();
+            try {
                 writing = false;
-                for (Iterator<Map.Entry<Long, LockType>> it = waiter.iterator(); it.hasNext();) {
-                    Map.Entry<Long, LockType> entry = it.next();
-                    if (entry.getValue().equals(type)) {
-                        it.remove();
-                        break;
-                    }
-                }
+                it.remove();
+            } finally {
+                mutex.unlock();
             }
-
-            if (!waiter.isEmpty()) writer.notifyAll();
         }
 
         @Override
         boolean validate() {
-            return waiter.peek().equals(new AbstractMap.SimpleEntry<>(Thread.currentThread().getId(), type));
+            return waiter.get(0).equals(new AbstractMap.SimpleEntry<>(Thread.currentThread().getId(), type));
         }
     }
 }
