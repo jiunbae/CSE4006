@@ -7,9 +7,29 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.*;
 
-public class ReentrantReadWriteOrderedLock implements  ReadWriteOrderedLock{
+public class ReentrantReadWriteOrderedLock implements ReadWriteLock {
+    final List<Map.Entry<Long, LockType>> waiter;
+    final Lock mutex;
+    final Condition reader;
+    final Condition writer;
+
+    boolean writing;
+    int readers;
+    List.Node it;
+
     final ReadLock readLock = new ReadLock();
     final WriteLock writeLock = new WriteLock();
+
+    public ReentrantReadWriteOrderedLock() {
+        waiter = new LinkedList<>();
+        mutex = new ReentrantLock();
+        reader = mutex.newCondition();
+        writer = mutex.newCondition();
+
+        writing = false;
+        readers = 0;
+        it = null;
+    }
 
     @Override
     public Lock readLock() {
@@ -26,25 +46,10 @@ public class ReentrantReadWriteOrderedLock implements  ReadWriteOrderedLock{
     }
 
     abstract class OrderedLock implements Lock {
-        final Lock mutex;
-        final Condition reader;
-        final Condition writer;
-        final List<Map.Entry<Long, LockType>> waiter;
-
-        boolean writing;
-        int readers;
-        List.Node it;
 
         final LockType type;
 
-        public OrderedLock(LockType type) {
-            mutex = new ReentrantLock();
-            reader = mutex.newCondition();
-            writer = mutex.newCondition();
-            waiter = new LinkedList<>();
-            writing = false;
-            readers = 0;
-            it = null;
+        OrderedLock(LockType type) {
             this.type = type;
         }
 
