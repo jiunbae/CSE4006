@@ -15,8 +15,9 @@ public interface List<T> extends Iterable<T> {
 
         @Override
         public F next() {
+            F value = (F) next.item;
             next = next.next;
-            return (F) next.item;
+            return value;
         }
     }
 
@@ -24,29 +25,43 @@ public interface List<T> extends Iterable<T> {
         public F item;
         public Node<F> front;
         public Node<F> next;
+        List<F> parent;
 
         public Node(F item) {
             this.item = item;
             front = next = null;
         }
 
+        public Node(F item, List<F> parent) {
+            this.item = item;
+            this.parent = parent;
+            front = next = null;
+        }
+
         public void remove() {
-            if (this.front != null) front.next = next;
-            if (this.next != null) next.front = front;
+            parent.removeNode(this);
         }
 
         public Node<F> makeNext(F item) {
-            Node<F> next = new Node<>(item);
-            next.front = this;
-            this.next = next;
-            return next;
+            Node<F> child = new Node<>(item, parent);
+            if (next != null) {
+                next.front = child;
+                child.next = next;
+            }
+            child.front = this;
+            next = child;
+            return child;
         }
 
         public Node<F> makeFront(F item) {
-            Node<F> front = new Node<>(item);
-            front.next = this;
-            this.front = front;
-            return front;
+            Node<F> child = new Node<>(item, parent);
+            if (front != null) {
+                front.next = child;
+                child.front = front;
+            }
+            child.next = this;
+            this.front = child;
+            return child;
         }
     }
 
@@ -62,6 +77,7 @@ public interface List<T> extends Iterable<T> {
     int indexOf(T item);
     T remove(int index);
     boolean remove(T item);
+    T removeNode(Node<T> node);
 
     int size();
     Object[] toArray();

@@ -47,6 +47,7 @@ public class BinaryTreeTest {
     @Test
     public void delete() throws Exception {
         numbers.forEach((e) -> tree.insert(e));
+        Collections.shuffle(numbers);
         numbers.forEach((e) -> tree.delete(e));
         numbers.forEach((e) -> assertFalse(tree.search(e)));
     }
@@ -54,6 +55,7 @@ public class BinaryTreeTest {
     @Test
     public void deleteParallel() throws Exception {
         numbers.forEach((e) -> tree.insert(e));
+        Collections.shuffle(numbers);
         numbers.forEach((e) -> pool.push(() -> tree.delete(e)));
         pool.join();
         numbers.forEach((e) -> assertFalse(tree.search(e)));
@@ -62,12 +64,14 @@ public class BinaryTreeTest {
     @Test
     public void search() throws Exception {
         numbers.forEach((e) -> tree.insert(e));
+        Collections.shuffle(numbers);
         numbers.forEach((e) -> tree.search(e));
     }
 
     @Test
     public void searchParallel() throws Exception {
         numbers.forEach((e) -> tree.insert(e));
+        Collections.shuffle(numbers);
         numbers.forEach((e) -> pool.push(() -> assertTrue(tree.search(e))));
         pool.join();
     }

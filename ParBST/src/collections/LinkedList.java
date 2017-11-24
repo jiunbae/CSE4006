@@ -12,28 +12,18 @@ public class LinkedList<T> implements List<T> {
     private int counter;
 
     public LinkedList() {
-        head = null;
+        head = new Node<>(null, this);
+        last = new Node<>(null, this);
+        head.next = last;
+        last.front = head;
         counter = 0;
     }
 
     @Override
     public boolean add(int index, T item) {
-        if (head == null) {
-            last = head = new Node<>(item);
-            counter += 1;
-            return true;
-        }
-
         try {
             Node<T> node = getNode(index);
-            Node<T> front = node.front;
-            Node<T> child = node.makeFront(item);
-            if (front != null) front.next = child;
-            child.front = front;
-
-            if (head.front != null) head = head.front;
-            if (last.next != null) last = last.next;
-
+            node.makeFront(item);
             counter += 1;
             return true;
         } catch (NullPointerException e) {
@@ -48,38 +38,37 @@ public class LinkedList<T> implements List<T> {
 
     @Override
     public boolean addFirst(T item) {
-        if (head == null) return false;
-        head = head.makeFront(item);
+        head.makeNext(item);
         counter += 1;
         return true;
     }
 
     @Override
     public Node<T> addNode(T item) {
-        if (head == null) {
-            Node<T> child = new Node<>(item);
-            head = last = child;
-            counter += 1;
-            return child;
-        }
-
         counter += 1;
-        return last = last.makeNext(item);
+        return last.makeFront(item);
     }
 
     @Override
-    public T get(int index) throws NullPointerException {
-        return getNode(index).item;
+    public T get(int index) {
+        try {
+            Node<T> node = getNode(index);
+            return node.item;
+        } catch (NullPointerException e) {
+            return null;
+        }
     }
 
     @Override
     public T getFirst() {
-        return head.item;
+        if (head.next == null) return null;
+        return head.next.item;
     }
 
     @Override
     public T getLast() {
-        return last.item;
+        if (last.front == null) return null;
+        return last.front.item;
     }
 
     @Override
@@ -94,17 +83,10 @@ public class LinkedList<T> implements List<T> {
 
     @Override
     public boolean remove(T item) {
-        Node<T> node = head;
-        if (node.item.equals(item)) {
-            removeNode(node);
-            return true;
-        } else {
-            while (node.next != null) {
-                if (node.item.equals(item)) {
-                    removeNode(node);
-                    return true;
-                }
-                node = node.next;
+        for (Node<T> node = head.next; node != last; node = node.next) {
+            if (node.item.equals(item)) {
+                removeNode(node);
+                return true;
             }
         }
         return false;
@@ -119,20 +101,19 @@ public class LinkedList<T> implements List<T> {
     public Object[] toArray() {
         Object[] result = new Object[counter];
         int i = 0;
-        for (Node<T> node = head; node != null; node = node.next)
+        for (Node<T> node = head.next; node != last; node = node.next)
             result[i++] = node.item;
         return result;
     }
 
     @Override
-    public Iterator iterator() {
-        return new Iterator(head);
+    public Iterator<T> iterator() {
+        return new Iterator<>(head.next);
     }
 
     @Override
     public void forEach(Consumer<? super T> action) {
-        for (Iterator it = iterator(); it.hasNext();)
-            action.accept((T) it.next());
+        for (T t : this) action.accept(t);
     }
 
     @Override
@@ -141,31 +122,27 @@ public class LinkedList<T> implements List<T> {
     }
 
     private Node<T> getNode(int index) {
-        try {
-            Node<T> node = head;
-            while (index-->0) node = node.next;
-            return node;
-        } catch (NullPointerException e) {
-            return null;
+        for (Node<T> node = head.next; node != last; node = node.next) {
+            if (index-- == 0)
+                return node;
         }
+        return null;
     }
 
     private int getIndex(T element) {
-        Node<T> node = head;
         int index = 0;
-        while (!node.item.equals(element)) {
-            node = node.next;
-            ++index;
+        for (Node<T> node = head.next; node != last; node = node.next) {
+            if (node.item.equals(element))
+                return index;
+            index++;
         }
         return index;
     }
 
-    private T removeNode(Node<T> node) {
+    @Override
+    public T removeNode(Node<T> node) {
         if (node.front != null) node.front.next = node.next;
-        else head = node.next;
-
         if (node.next != null) node.next.front = node.front;
-        else last = node.front;
         counter -= 1;
         return node.item;
     }
