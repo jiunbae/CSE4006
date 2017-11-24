@@ -15,7 +15,7 @@ public class BinaryTreeTest {
     private static Tree<Integer> tree;
     private static concurrent.Pool pool;
 
-    private static final int testSize = 100000;
+    private static final int testSize = 1000000;
     private static List<Integer> numbers;
 
     @BeforeClass
@@ -23,7 +23,7 @@ public class BinaryTreeTest {
         numbers = IntStream.range(0, testSize).boxed().collect(Collectors.toList());
         Collections.shuffle(numbers);
 
-        pool = new concurrent.Pool(2);
+        pool = new concurrent.Pool(4);
     }
 
     @Before

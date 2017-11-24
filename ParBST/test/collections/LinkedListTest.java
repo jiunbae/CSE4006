@@ -55,7 +55,6 @@ public class LinkedListTest {
     @Test
     public void get() throws Exception {
         for (int i = 0; i < numbers.size(); ++i) {
-            if (i % 1000 == 0) System.out.println(i);
             assertEquals(numbers.get(i), list.get(i));
         }
     }
@@ -104,13 +103,19 @@ public class LinkedListTest {
     }
 
     @Test
-    public void iterable() throws Exception {
+    public void iterate() throws Exception {
         int counter = 0;
         for (Iterator it = list.iterator(); it.hasNext();) {
-
+            Integer item = (Integer) it.next();
+            assertEquals(numbers.get(counter++), item);
         }
     }
 
     @Test
-    public 
+    public void forEach() throws Exception {
+        int counter = 0;
+        for (Integer i : list) {
+            assertEquals(numbers.get(counter++), i);
+        }
+    }
 }

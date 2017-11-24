@@ -49,7 +49,14 @@ public class RWBinaryTreeTest {
     public void insertParallel() throws Exception {
         numbers.forEach((e) -> pool.push(() -> tree.insert(e)));
         pool.join();
-        numbers.forEach((e) -> assertTrue(tree.search(e)));
+        Thread.sleep(1000);
+        numbers.forEach((e) -> System.out.print(String.format("%d, ", e)));
+        numbers.forEach((e) -> {
+            System.out.println(String.format("asserting %d", e));
+            if (!tree.search(e))
+                System.out.println("Miss");
+            //assertTrue(tree.search(e));
+        });
     }
 
     @Test
