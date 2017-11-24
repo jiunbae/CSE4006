@@ -29,7 +29,7 @@ public class ReentrantReadWriteSuperLock {
         if( isReader(callingThread) ) return true;
         if( hasWriteRequests()      ) return false;
         return true;
-    }
+}
 
 
     public synchronized void unlockRead(){

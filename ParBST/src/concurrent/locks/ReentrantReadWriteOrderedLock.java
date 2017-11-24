@@ -4,31 +4,32 @@ import collections.LinkedList;
 import collections.interfaces.List;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.*;
 
 public class ReentrantReadWriteOrderedLock implements ReadWriteLock {
-    final List<Map.Entry<Long, LockType>> waiter;
-    final Lock mutex;
-    final Condition reader;
-    final Condition writer;
+    private final ConcurrentLinkedQueue<Map.Entry<Long, LockType>> waiter;
+    private final Lock mutex;
+    private final Condition reader;
+    private final Condition writer;
+    private final Map<Long, Map.Entry<Long, LockType>> entries;
 
-    boolean writing;
-    int readers;
-    List.Node it;
+    private boolean writing;
+    private int readers;
 
-    final ReadLock readLock = new ReadLock();
-    final WriteLock writeLock = new WriteLock();
+    private final ReadLock readLock = new ReadLock();
+    private final WriteLock writeLock = new WriteLock();
 
     public ReentrantReadWriteOrderedLock() {
-        waiter = new LinkedList<>();
+        waiter = new ConcurrentLinkedQueue<>();
         mutex = new ReentrantLock();
         reader = mutex.newCondition();
         writer = mutex.newCondition();
+        entries = new HashMap<>();
 
         writing = false;
         readers = 0;
-        it = null;
     }
 
     @Override
@@ -57,7 +58,9 @@ public class ReentrantReadWriteOrderedLock implements ReadWriteLock {
         public void lock() {
             mutex.lock();
             try {
-                it = waiting();
+                Map.Entry<Long, LockType> entry = new AbstractMap.SimpleEntry<>(Thread.currentThread().getId(), type);
+                entries.put(Thread.currentThread().getId(), entry);
+                waiter.add(entry);
                 do {
                     while (!validate())
                         writer.await();
@@ -85,10 +88,6 @@ public class ReentrantReadWriteOrderedLock implements ReadWriteLock {
             throw new UnsupportedOperationException("This lock does not support method");
         }
 
-        List.Node waiting() {
-            return waiter.addNode(new AbstractMap.SimpleEntry<>(Thread.currentThread().getId(), type));
-        }
-
         abstract void afterLock() throws InterruptedException;
 
         abstract boolean validate();
@@ -109,7 +108,7 @@ public class ReentrantReadWriteOrderedLock implements ReadWriteLock {
             mutex.lock();
             try {
                 if (writing) return false;
-                waiting();
+                waiter.offer(new AbstractMap.SimpleEntry<>(Thread.currentThread().getId(), type));
                 afterLock();
                 return true;
             } finally {
@@ -119,22 +118,19 @@ public class ReentrantReadWriteOrderedLock implements ReadWriteLock {
 
         @Override
         public void unlock() {
-            int local_readers;
-            boolean local_writing;
-
             mutex.lock();
-            it.remove();
-            local_readers = --readers;
-            local_writing = writing;
             try {
+                waiter.remove(entries.remove(Thread.currentThread().getId()));
+                --readers;
+                if (writing && readers == 0)
+                    reader.signalAll();
+                else if (!writing)
+                    writer.signalAll();
+            } catch (IllegalMonitorStateException e) {
+                e.printStackTrace();
             } finally {
                 mutex.unlock();
             }
-
-            if (local_writing && local_readers == 0)
-                reader.signalAll();
-            else if (!local_writing)
-                writer.signalAll();
         }
 
         @Override
@@ -164,7 +160,7 @@ public class ReentrantReadWriteOrderedLock implements ReadWriteLock {
             mutex.lock();
             try {
                 if (writing || readers > 0) return false;
-                waiting();
+                waiter.offer(new AbstractMap.SimpleEntry<>(Thread.currentThread().getId(), type));
                 return writing = true;
             } finally {
                 mutex.unlock();
@@ -175,16 +171,19 @@ public class ReentrantReadWriteOrderedLock implements ReadWriteLock {
         public void unlock() {
             mutex.lock();
             try {
+                waiter.remove(entries.remove(Thread.currentThread().getId()));
                 writing = false;
-                it.remove();
+
+                writer.signal();
             } finally {
                 mutex.unlock();
             }
+
         }
 
         @Override
         boolean validate() {
-            return waiter.get(0).equals(new AbstractMap.SimpleEntry<>(Thread.currentThread().getId(), type));
+            return waiter.peek().equals(new AbstractMap.SimpleEntry<>(Thread.currentThread().getId(), type));
         }
     }
 }
