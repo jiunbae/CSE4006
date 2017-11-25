@@ -50,6 +50,30 @@ public class LinkedList<T> implements List<T> {
     }
 
     @Override
+    public T remove(int index) {
+        return removeNode(getNode(index));
+    }
+
+    @Override
+    public boolean remove(T item) {
+        for (Node<T> node = head.next; node != last; node = node.next) {
+            if (node.item.equals(item)) {
+                removeNode(node);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public <N extends Node<T>> T removeNode(N node) {
+        if (node.front != null) node.front.next = node.next;
+        if (node.next != null) node.next.front = node.front;
+        counter -= 1;
+        return node.item;
+    }
+
+    @Override
     public T get(int index) {
         try {
             Node<T> node = getNode(index);
@@ -72,32 +96,13 @@ public class LinkedList<T> implements List<T> {
     }
 
     @Override
+    public boolean contains(T item) {
+        return getIndex(item) != -1;
+    }
+
+    @Override
     public int indexOf(T item) {
         return getIndex(item);
-    }
-
-    @Override
-    public T remove(int index) {
-        return removeNode(getNode(index));
-    }
-
-    @Override
-    public boolean remove(T item) {
-        for (Node<T> node = head.next; node != last; node = node.next) {
-            if (node.item.equals(item)) {
-                removeNode(node);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public <N extends Node<T>> T removeNode(N node) {
-        if (node.front != null) node.front.next = node.next;
-        if (node.next != null) node.next.front = node.front;
-        counter -= 1;
-        return node.item;
     }
 
     @Override
@@ -144,6 +149,6 @@ public class LinkedList<T> implements List<T> {
                 return index;
             index++;
         }
-        return index;
+        return -1;
     }
 }
