@@ -15,7 +15,7 @@ import static org.junit.Assert.*;
 public class BinaryTreeTest {
     private static Tree<Integer> tree;
 
-    private static final int testSize = 100000;
+    private static final int testSize = 1000000;
     private static List<Integer> numbers;
 
     @BeforeClass

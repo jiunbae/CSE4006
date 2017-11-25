@@ -8,13 +8,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.Assert.*;
 
 public class PoolTest {
-    private static final int nThreads = 8;
-    private static final int nTests = 1000000;
     private static Pool pool;
+
+    private static final int nTests = 1000000;
 
     @Before
     public void makeInstance() throws Exception {
-        pool = new Pool(nThreads);
+        pool = new Pool(4);
     }
 
     @Test

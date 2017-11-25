@@ -12,7 +12,7 @@ public class RWBinaryTreeTest {
     private static RWBinaryTree<Integer> tree;
     private static concurrent.Pool pool;
 
-    private static final int testSize = 10;
+    private static final int testSize = 1000000;
     private static List<Integer> numbers;
 
     @BeforeClass

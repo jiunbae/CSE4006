@@ -15,7 +15,7 @@ import static org.junit.Assert.*;
 public class LinkedListTest {
     private static collections.interfaces.List<Integer> list;
 
-    private static final int testSize = 100000;
+    private static final int testSize = 1000000;
     private static List<Integer> numbers;
 
     @BeforeClass
