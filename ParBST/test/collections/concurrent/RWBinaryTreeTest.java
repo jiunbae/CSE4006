@@ -4,12 +4,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -55,6 +50,7 @@ public class RWBinaryTreeTest {
     @Test
     public void delete() throws Exception {
         numbers.forEach((e) -> tree.insert(e));
+        numbers = Arrays.asList(0,1,19,9,8,7,13,15,14,11);
         numbers.forEach((e) -> tree.delete(e));
         numbers.forEach((e) -> assertFalse(tree.search(e)));
     }

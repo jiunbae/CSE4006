@@ -215,7 +215,69 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
                         LockableNode finalCur = cur;
                         if (par.write((p) -> {
                             if (finalCur.data.compareTo(data) == 0) {
-                                return true;
+                                return finalCur.write((c) -> {
+                                    LockableNode itPar = null;
+                                    LockableNode itCur;
+                                    if (c.left != null) {
+                                        itCur = c.left;
+                                        itCur.lock();
+                                        while (itCur.right != null) {
+                                            itCur.right.lock();
+                                            if (itPar != null && itPar != c) itPar.unlock();
+                                            itPar = itCur;
+                                            itCur = itCur.right;
+                                        }
+
+                                        if (itPar == null) c.left = itCur.left;
+                                        else {
+                                            LockableNode finalItCur = itCur;
+                                            itPar.write((ip) -> {
+                                                if (ip.right == null) {
+                                                    System.out.println(String.format("thread %d, node %s, DEL: find replacement error %d", Thread.currentThread().getId(), finalItCur.data, p.data));
+                                                    return false;
+                                                } else
+                                                    ip.right = finalItCur.left;
+                                                return true;
+                                            });
+                                        }
+                                        c.data = itCur.data;
+                                        if (itPar != null && itPar != c) itPar.unlock();
+                                        itCur.unlock();
+                                    } else if (c.right != null) {
+                                        itCur = c.right;
+                                        itCur.lock();
+                                        while (itCur.left != null) {
+                                            itCur.left.lock();
+                                            if (itPar != null && itPar != c) itPar.unlock();
+                                            itPar = itCur;
+                                            itCur = itCur.left;
+                                        }
+
+                                        if (itPar == null) c.right = itCur.right;
+                                        else {
+                                            LockableNode finalItCur = itCur;
+                                            itPar.write((ip) -> {
+                                                if (ip.left == null) {
+                                                    System.out.println(String.format("thread %d, node %s, DEL: find replacement error %d", Thread.currentThread().getId(), finalItCur.data, p.data));
+                                                    return false;
+                                                } else
+                                                    ip.left = finalItCur.right;
+                                                return true;
+                                            });
+                                        }
+                                        c.data = itCur.data;
+                                        if (itPar != null && itPar != c) itPar.unlock();
+                                        itCur.unlock();
+                                    } else {
+                                        if (p.left == finalCur) p.left = null;
+                                        else if (p.right == finalCur) p.right = null;
+                                        else {
+                                            System.out.println(String.format("thread %d, node %s, DEL: find replacement error %d", Thread.currentThread().getId(), c.data, p.data));
+                                            return false;
+                                        }
+                                    }
+                                    return true;
+                                });
                             } else {
                                 System.out.println(String.format("thread %d, node %s, DEL: assertion failed %s", Thread.currentThread().getId(), finalCur.data, data));
                                 return false;
