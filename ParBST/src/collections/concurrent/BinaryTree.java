@@ -2,9 +2,8 @@ package collections.concurrent;
 
 import collections.interfaces.Tree;
 
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 public class BinaryTree<T extends Comparable<? super T>> implements Tree<T> {
     public class LockableNode extends Tree.Node<T> {
