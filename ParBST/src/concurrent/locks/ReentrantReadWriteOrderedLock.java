@@ -79,6 +79,11 @@ public class ReentrantReadWriteOrderedLock implements ReadWriteLock {
         }
 
         @Override
+        public boolean tryLock() {
+            throw new UnsupportedOperationException("This lock does not support method");
+        }
+
+        @Override
         public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
             throw new UnsupportedOperationException("This lock does not support method");
         }
@@ -93,7 +98,7 @@ public class ReentrantReadWriteOrderedLock implements ReadWriteLock {
         abstract boolean validate();
     }
 
-    class ReadLock extends OrderedLock {
+    public class ReadLock extends OrderedLock {
         ReadLock() {
             super(LockType.READ);
         }
@@ -101,19 +106,6 @@ public class ReentrantReadWriteOrderedLock implements ReadWriteLock {
         @Override
         public void afterLock() {
             readers += 1;
-        }
-
-        @Override
-        public boolean tryLock() {
-            mutex.lock();
-            try {
-                if (writing) return false;
-                waiter.offer(new AbstractMap.SimpleEntry<>(Thread.currentThread().getId(), type));
-                afterLock();
-                return true;
-            } finally {
-                mutex.unlock();
-            }
         }
 
         @Override
@@ -143,7 +135,7 @@ public class ReentrantReadWriteOrderedLock implements ReadWriteLock {
         }
     }
 
-    class WriteLock extends OrderedLock {
+    public class WriteLock extends OrderedLock {
         WriteLock() {
             super(LockType.WRITE);
         }
@@ -155,13 +147,14 @@ public class ReentrantReadWriteOrderedLock implements ReadWriteLock {
                 reader.await();
         }
 
-        @Override
-        public boolean tryLock() {
+        public void downgrade() {
             mutex.lock();
             try {
-                if (writing || readers > 0) return false;
-                waiter.offer(new AbstractMap.SimpleEntry<>(Thread.currentThread().getId(), type));
-                return writing = true;
+                if (writing && waiter.peek().equals(new AbstractMap.SimpleEntry<>(Thread.currentThread().getId(), type))) {
+                    waiter.peek().setValue(LockType.READ);
+                    writing = false;
+                    readers += 1;
+                }
             } finally {
                 mutex.unlock();
             }
