@@ -23,15 +23,11 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
         }
 
         void lock() {
-            System.out.println(String.format("thread %d, node %s, READ: request lock", Thread.currentThread().getId(), data));
             locker.readLock().lock();
-            System.out.println(String.format("thread %d, node %s, READ: acquire lock", Thread.currentThread().getId(), data));
         }
 
         void unlock() {
-            System.out.println(String.format("thread %d, node %s, READ: request release", Thread.currentThread().getId(), data));
             locker.readLock().unlock();
-            System.out.println(String.format("thread %d, node %s, READ: accept release", Thread.currentThread().getId(), data));
         }
 
         /**
@@ -60,23 +56,13 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
          *          must configure logic to re-try, else return true
          */
         boolean write(final Function<LockableNode, Boolean> f) {
-            System.out.println(String.format("thread %d, node %s, WRITE: request read release for write", Thread.currentThread().getId(), data));
             locker.readLock().unlock();
-            System.out.println(String.format("thread %d, node %s, WRITE: accept read release for write", Thread.currentThread().getId(), data));
-            System.out.println(String.format("thread %d, node %s, WRITE: request lock", Thread.currentThread().getId(), data));
             locker.writeLock().lock();
-            System.out.println(String.format("thread %d, node %s, WRITE: acquire lock", Thread.currentThread().getId(), data));
             try {
-                System.out.println(String.format("thread %d, node %s, WRITE: write start", Thread.currentThread().getId(), data));
                 return f.apply(this);
             } finally {
-                System.out.println(String.format("thread %d, node %s, WRITE: write done", Thread.currentThread().getId(), data));
-                System.out.println(String.format("thread %d, node %s, WRITE: request release", Thread.currentThread().getId(), data));
                 locker.writeLock().unlock();
-                System.out.println(String.format("thread %d, node %s, WRITE: accept release", Thread.currentThread().getId(), data));
-                System.out.println(String.format("thread %d, node %s, WRITE: request lock read", Thread.currentThread().getId(), data));
                 locker.readLock().lock();
-                System.out.println(String.format("thread %d, node %s, WRITE: acquire lock read", Thread.currentThread().getId(), data));
             }
         }
     }
@@ -168,6 +154,8 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
                             });
                         }
                         c.data = itCur.data;
+                        if (itPar != null && itPar != c) itPar.unlock();
+                        itCur.unlock();
                     } else if (c.right != null) {
                         itCur = c.right;
                         while (itCur.left != null) {
@@ -189,6 +177,8 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
                             });
                         }
                         c.data = itCur.data;
+                        if (itPar != null && itPar != c) itPar.unlock();
+                        itCur.unlock();
                     } else {
                         return false;
                     }

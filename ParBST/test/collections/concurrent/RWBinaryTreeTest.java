@@ -26,7 +26,7 @@ public class RWBinaryTreeTest {
         //numbers = IntStream.range(0, testSize).boxed().collect(Collectors.toList());
         //Collections.shuffle(numbers);
 
-        pool = new concurrent.Pool(2);
+        pool = new concurrent.Pool(4);
     }
 
     @Before
@@ -50,7 +50,7 @@ public class RWBinaryTreeTest {
     @Test
     public void delete() throws Exception {
         numbers.forEach((e) -> tree.insert(e));
-        numbers = Arrays.asList(0,1,19,9,8,7,13,15,14,11);
+        Collections.shuffle(numbers);
         numbers.forEach((e) -> tree.delete(e));
         numbers.forEach((e) -> assertFalse(tree.search(e)));
     }
@@ -59,11 +59,7 @@ public class RWBinaryTreeTest {
     public void deleteParallel() throws Exception {
         numbers.forEach((e) -> tree.insert(e));
         Collections.shuffle(numbers);
-        numbers.forEach((e) -> pool.push(() -> {
-            System.out.println(String.format("thread %d, %d delete start", Thread.currentThread().getId(), e));
-            tree.delete(e);
-            System.out.println(String.format("thread %d, %d delete done", Thread.currentThread().getId(), e));
-        }));
+        numbers.forEach((e) -> pool.push(() -> tree.delete(e)));
         pool.join();
         numbers.forEach((e) -> assertFalse(tree.search(e)));
     }
