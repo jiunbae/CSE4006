@@ -147,17 +147,14 @@ public class BinaryTree<T extends Comparable<? super T>> implements Tree<T> {
             }
 
             if (cur.left != null) cur.left.lock();
-
             if (par == sub) par.left = cur.left;
             else {
                 par.right = cur.left;
                 par.unlock();
             }
-
             if (cur.left != null) cur.left.unlock();
 
             cur.unlock();
-
         } else if (sub.right != null) {
             cur = sub.right;
             cur.lock();
@@ -170,21 +167,15 @@ public class BinaryTree<T extends Comparable<? super T>> implements Tree<T> {
             }
 
             if (cur.right != null) cur.right.lock();
-
             if (par == sub) par.right = cur.right;
             else {
                 par.left = cur.right;
                 par.unlock();
             }
-
             if (cur.right != null) cur.right.unlock();
 
             cur.unlock();
-
-        } else {
-            return null;
-        }
-
+        } else return null;
         return cur;
     }
 
