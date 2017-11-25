@@ -70,14 +70,15 @@ public interface List<T> extends Iterable<T> {
     boolean addFirst(T item);
     Node<T> addNode(T item);
 
-    T get(int index);
-    T getFirst();
-    T getLast();
-
-    int indexOf(T item);
     T remove(int index);
     boolean remove(T item);
     <N extends Node<T>> T removeNode(N node);
+
+    T get(int index);
+    T getFirst();
+    T getLast();
+    boolean contains(T item);
+    int indexOf(T item);
 
     int size();
     Object[] toArray();
