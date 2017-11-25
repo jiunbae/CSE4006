@@ -267,6 +267,7 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
     @Override
     public boolean delete(T data) {
         lock.lock();
+        System.out.println(String.format("thread %d, delete %d start", Thread.currentThread().getId(), data));
         if (root == null) {
             lock.unlock();
         } else {
@@ -278,6 +279,10 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
             if (compare != 0) {
                 par = cur;
                 cur = compare > 0 ? cur.left : cur.right;
+                if (cur == null) {
+                    par.writeLock.unlock();
+                    return true;
+                }
                 cur.writeLock.lock();
                 lock.unlock();
 
@@ -349,7 +354,7 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
             if (par == sub) par.left = cur.left;
             else {
                 par.right = cur.left;
-                par.unlock();
+                par.writeLock.unlock();
             }
             if (cur.left != null) cur.left.writeLock.unlock();
 
