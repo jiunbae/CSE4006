@@ -2,9 +2,9 @@ package collections.interfaces;
 
 public interface List<T> extends Iterable<T> {
     class Iterator<F> implements java.util.Iterator<F> {
-        Node next;
+        Node<F> next;
 
-        public Iterator(Node next) {
+        public Iterator(Node<F> next) {
             this.next = next;
         }
 
@@ -15,7 +15,7 @@ public interface List<T> extends Iterable<T> {
 
         @Override
         public F next() {
-            F value = (F) next.item;
+            F value = next.item;
             next = next.next;
             return value;
         }
@@ -77,7 +77,7 @@ public interface List<T> extends Iterable<T> {
     int indexOf(T item);
     T remove(int index);
     boolean remove(T item);
-    T removeNode(Node<T> node);
+    <N extends Node<T>> T removeNode(N node);
 
     int size();
     Object[] toArray();

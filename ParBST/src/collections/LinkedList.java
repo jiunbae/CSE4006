@@ -93,6 +93,14 @@ public class LinkedList<T> implements List<T> {
     }
 
     @Override
+    public <N extends Node<T>> T removeNode(N node) {
+        if (node.front != null) node.front.next = node.next;
+        if (node.next != null) node.next.front = node.front;
+        counter -= 1;
+        return node.item;
+    }
+
+    @Override
     public int size() {
         return counter;
     }
@@ -137,13 +145,5 @@ public class LinkedList<T> implements List<T> {
             index++;
         }
         return index;
-    }
-
-    @Override
-    public T removeNode(Node<T> node) {
-        if (node.front != null) node.front.next = node.next;
-        if (node.next != null) node.next.front = node.front;
-        counter -= 1;
-        return node.item;
     }
 }
