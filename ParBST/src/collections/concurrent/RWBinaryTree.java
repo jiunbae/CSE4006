@@ -27,15 +27,11 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
         }
 
         void lock() {
-            System.out.println(String.format("thread %d, node %s, READ: request lock", Thread.currentThread().getId(), data));
             readLock.lock();
-            System.out.println(String.format("thread %d, node %s, READ: acquire lock", Thread.currentThread().getId(), data));
         }
 
         void unlock() {
-            System.out.println(String.format("thread %d, node %s, READ: request release", Thread.currentThread().getId(), data));
             readLock.unlock();
-            System.out.println(String.format("thread %d, node %s, READ: accept release", Thread.currentThread().getId(), data));
         }
 
         /**
@@ -64,22 +60,13 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
          *          must configure logic to re-try, else return true
          */
         boolean write(final Function<LockableNode, Boolean> f) {
-            System.out.println(String.format("thread %d, node %s, WRITE: request read release for write", Thread.currentThread().getId(), data));
             readLock.unlock();
-            System.out.println(String.format("thread %d, node %s, WRITE: accept read release for write", Thread.currentThread().getId(), data));
-            System.out.println(String.format("thread %d, node %s, WRITE: request lock", Thread.currentThread().getId(), data));
             writeLock.lock();
-            System.out.println(String.format("thread %d, node %s, WRITE: acquire lock", Thread.currentThread().getId(), data));
             try {
-                System.out.println(String.format("thread %d, node %s, WRITE: write start", Thread.currentThread().getId(), data));
                 return f.apply(this);
             } catch (RuntimeException e) {
-                System.out.println("RE raised");
             } finally {
-                System.out.println(String.format("thread %d, node %s, WRITE: write done", Thread.currentThread().getId(), data));
-                System.out.println(String.format("thread %d, node %s, WRITE: lock downgrade", Thread.currentThread().getId(), data));
                 writeLock.downgrade();
-                System.out.println(String.format("thread %d, node %s, WRITE: lock downgrade done", Thread.currentThread().getId(), data));
             }
             return true;
         }
@@ -96,7 +83,6 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
     @Override
     public boolean insert(T data) {
         lock.lock();
-        System.out.println(String.format("thread %d, insert %d", Thread.currentThread().getId(), data));
         if (root == null) {
             root = new LockableNode(data);
             lock.unlock();
@@ -114,35 +100,19 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
 
                 LockableNode next = compare > 0 ? cur.left : cur.right;
                 if (next == null) {
-                    System.out.println(String.format("thread %d, throw into critical section at %d", Thread.currentThread().getId(), cur.data));
                     if (cur.write((c) -> {
                         if (compare > 0) {
-                            if (c.left != null) {
-                                System.out.println(String.format("thread %d, detect dirty write in cs %d", Thread.currentThread().getId(), c.data));
-                                return false;
-                            }
-                            else {
-                                System.out.println(String.format("thread %d, write is clear and start writing", Thread.currentThread().getId(), c.data));
-                                c.left = new LockableNode(data);
-                            }
-                        }
-                        else {
-                            if (c.right != null) {
-                                System.out.println(String.format("thread %d, detect dirty write in cs %d", Thread.currentThread().getId(), c.data));
-                                return false;
-                            }
-                            else {
-                                System.out.println(String.format("thread %d, write is clear and start writing", Thread.currentThread().getId(), c.data));
-                                c.right = new LockableNode(data);
-                            }
+                            if (c.left != null) return false;
+                            else c.left = new LockableNode(data);
+                        } else {
+                            if (c.right != null) return false;
+                            else c.right = new LockableNode(data);
                         }
                         return true;
                     })) {
-                        System.out.println(String.format("thread %d, throw out from critical with success", Thread.currentThread().getId(), cur.data));
                         cur.unlock();
                         break;
                     }
-                    System.out.println(String.format("thread %d, throw out from critical section with failed", Thread.currentThread().getId(), cur.data));
                 } else {
                     next.lock();
                     cur.unlock();
@@ -152,122 +122,10 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
         }
         return true;
     }
-//
-//    @Override
-//    public boolean delete(T data) {
-//        lock.lock();
-//        System.out.println(String.format("thread %d, delete %d", Thread.currentThread().getId(), data));
-//        if (root == null) {
-//            lock.unlock();
-//        } else {
-//            LockableNode cur = root;
-//            LockableNode par = null;
-//            cur.lock();
-//
-//            int compare = cur.data.compareTo(data);
-//            // no exception here, cuz holding global lock
-//            if (compare == 0) {
-//                if (!cur.write((c) -> {
-//                    LockableNode itPar = c;
-//                    LockableNode itCur;
-//                    if (c.left != null) {
-//                        itCur = c.left;
-//                        while (itCur.right != null) {
-//                            itCur.right.lock();
-//                            if (itPar != c) itPar.unlock();
-//                            itPar = itCur;
-//                            itCur = itCur.right;
-//                        }
-//
-//                        if (itPar == c) c.left = itCur.left;
-//                        else {
-//                            LockableNode finalItCur = itCur;
-//                            itPar.write((p) -> {
-//                                if (p.right == null) {
-//                                    System.out.println(String.format("thread %d, node %s, DEL: find replacement error %d", Thread.currentThread().getId(), finalItCur.data, p.data));
-//                                } else
-//                                    p.right = finalItCur.left;
-//                                return true;
-//                            });
-//                        }
-//                        c.data = itCur.data;
-//                        if (itPar != c) itPar.unlock();
-//                        itCur.unlock();
-//                    } else if (c.right != null) {
-//                        itCur = c.right;
-//                        while (itCur.left != null) {
-//                            itCur.left.lock();
-//                            if (itPar != c) itPar.unlock();
-//                            itPar = itCur;
-//                            itCur = itCur.left;
-//                        }
-//
-//                        if (itPar == c) c.right = itCur.right;
-//                        else {
-//                            LockableNode finalItCur = itCur;
-//                            itPar.write((p) -> {
-//                                if (p.left == null) {
-//                                    System.out.println(String.format("thread %d, node %s, DEL: find replacement error %d", Thread.currentThread().getId(), finalItCur.data, p.data));
-//                                } else
-//                                    p.left = finalItCur.right;
-//                                return true;
-//                            });
-//                        }
-//                        c.data = itCur.data;
-//                        if (itPar != c) itPar.unlock();
-//                        itCur.unlock();
-//                    } else {
-//                        return false;
-//                    }
-//                    return true;
-//                })) {
-//                    root = null;
-//                }
-//                cur.unlock();
-//                lock.unlock();
-//            } else {
-//                lock.unlock();
-//                while (true) {
-//                    if (par != null) par.unlock();
-//                    par = cur;
-//                    cur = compare > 0 ? cur.left : cur.right;
-//                    if (cur == null) {
-//                        par.unlock();
-//                        return false;
-//                    }
-//                    cur.lock();
-//                    compare = cur.data.compareTo(data);
-//
-//                    if (compare == 0) {
-//                        LockableNode finalCur = cur;
-//                        if (par.write((p) -> {
-//                            if (finalCur.data.compareTo(data) == 0) {
-//                                return finalCur.write((c) -> {
-//                                    return true;
-//                                });
-//                            } else {
-//                                System.out.println(String.format("thread %d, node %s, DEL: assertion failed %s", Thread.currentThread().getId(), finalCur.data, data));
-//                                return false;
-//                            }
-//                        })) {
-//                            par.unlock();
-//                            cur.unlock();
-//                            break;
-//                        } else {
-//                            System.out.println(String.format("thread %d, node %s, DEL: critical assertion failed %s", Thread.currentThread().getId(), finalCur.data, data));
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        System.out.println(String.format("thread %d, delete %d done.", Thread.currentThread().getId(), data));
-//        return true;
-//    }
 
     @Override
     public boolean delete(T data) {
         lock.lock();
-        System.out.println(String.format("thread %d, delete %d start", Thread.currentThread().getId(), data));
         if (root == null) {
             lock.unlock();
         } else {
