@@ -54,5 +54,4 @@ public class LinkedListTest {
         numbers.forEach((e) -> pool.push(() -> assertTrue(list.contains(e))));
         pool.join();
     }
-
 }
