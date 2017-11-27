@@ -148,64 +148,73 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
         } else {
             LockableNode cur = root;
             LockableNode par;
-            cur.writeLock.lock();
+            cur.lock();
 
             int compare = cur.data.compareTo(data);
             if (compare != 0) {
                 par = cur;
                 cur = compare > 0 ? cur.left : cur.right;
                 if (cur == null) {
-                    par.writeLock.unlock();
+                    par.unlock();
+                    lock.unlock();
                     return true;
                 }
-                cur.writeLock.lock();
+                cur.lock();
                 lock.unlock();
 
                 while (true) {
                     compare = cur.data.compareTo(data);
                     if (compare == 0) {
-                        LockableNode rep = replacement(cur);
+                        LockableNode finalCur = cur;
+                        T oldValue = cur.data;
+                        if (par.write((p) -> finalCur.data.compareTo(oldValue) == 0 && finalCur.write((c) -> {
+                                LockableNode rep = replacement(c);
 
-                        compare = par.data.compareTo(data);
-                        if (compare > 0) par.left = rep;
-                        else par.right = rep;
+                                if (p.data.compareTo(data) > 0) p.left = rep;
+                                else p.right = rep;
 
-                        if (rep != null) {
-                            rep.left = cur.left;
-                            rep.right = cur.right;
+                                if (rep != null) {
+                                    rep.write((r) -> {
+                                        r.left = c.left;
+                                        r.right = c.right;
+                                        return true;
+                                    });
+                                    rep.unlock();
+                                }
+
+                                return true;
+                            }))) {
+                            par.unlock();
+                            cur.unlock();
+                            break;
                         }
-
-                        cur.writeLock.unlock();
-                        par.writeLock.unlock();
-                        break;
-                    } else {
-                        par.writeLock.unlock();
-                        par = cur;
-
-                        compare = cur.data.compareTo(data);
-                        if (compare > 0) cur = cur.left;
-                        else cur = cur.right;
                     }
 
+                    par.unlock();
+                    par = cur;
+
+                    cur = compare > 0 ? cur.left : cur.right;
                     if (cur == null) {
-                        par.writeLock.unlock();
+                        par.unlock();
                         return false;
                     }
-                    else cur.writeLock.lock();
+                    cur.lock();
                 }
             } else {
-                LockableNode rep = replacement(cur);
-                root = rep;
+                cur.write((c) -> {
+                    LockableNode rep = replacement(c);
+                    root = rep;
 
-                if (rep != null) {
-                    rep.left = cur.left;
-                    rep.right = cur.right;
-                }
+                    if (rep != null) {
+                        rep.left = c.left;
+                        rep.right = c.right;
+                    }
 
-                cur.writeLock.unlock();
+                    return true;
+                });
+                cur.unlock();
                 lock.unlock();
             }
-
         }
         return true;
     }
@@ -232,8 +241,8 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
                 par.writeLock.unlock();
             }
             if (cur.left != null) cur.left.writeLock.unlock();
-
             cur.writeLock.unlock();
+
         } else if (sub.right != null) {
             cur = sub.right;
             cur.writeLock.lock();
@@ -252,8 +261,8 @@ public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
                 par.writeLock.unlock();
             }
             if (cur.right != null) cur.right.writeLock.unlock();
-
             cur.writeLock.unlock();
+
         } else return null;
         return cur;
     }
