@@ -5,6 +5,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.*;
 
@@ -17,16 +19,10 @@ public class RWBinaryTreeTest {
 
     @BeforeClass
     public static void init() throws Exception {
-        Random random = new Random(0);
-        numbers = new ArrayList<>();
-        for (int i = 0; i < testSize; ++i) {
-            numbers.add(random.nextInt(testSize * 2));
-        }
+        numbers = IntStream.range(0, testSize).boxed().collect(Collectors.toList());
+        Collections.shuffle(numbers);
 
-        //numbers = IntStream.range(0, testSize).boxed().collect(Collectors.toList());
-        //Collections.shuffle(numbers);
-
-        pool = new concurrent.Pool(4);
+        pool = new concurrent.Pool(2);
     }
 
     @Before

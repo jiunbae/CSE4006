@@ -13,7 +13,7 @@ import java.util.stream.IntStream;
 import static org.junit.Assert.*;
 
 public class LinkedListTest {
-    private static collections.interfaces.List<Integer> list;
+    private static collections.LinkedList<Integer> list;
 
     private static final int testSize = 10000;
     private static List<Integer> numbers;
