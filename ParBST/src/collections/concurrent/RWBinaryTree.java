@@ -9,7 +9,24 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
+/**
+ * An implementation of {@link Tree}, by fine-grained method using {@link ReadWriteLock}.
+ * Concurrent additional implementation of {@link collections.LinkedList}.
+ *
+ * Fine-grained locking with insert, delete, search methods with ReadWriteLock.
+ *
+ * See some test on concurrent.BinaryTreeTest.
+ *
+ * @param <T>
+ */
 public class RWBinaryTree<T extends Comparable<? super T>> implements Tree<T> {
+    /**
+     * Node which lock enabled extends Tree.Node
+     *
+     * Using {@link ReentrantReadWriteOrderedLock} to read, write locking
+     *
+     * Critical section must run in {@link #write(Function)} for safety.
+     */
     public class LockableNode extends Tree.Node<T> {
         LockableNode left;
         LockableNode right;

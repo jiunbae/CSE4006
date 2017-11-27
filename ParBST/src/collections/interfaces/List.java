@@ -1,6 +1,12 @@
 package collections.interfaces;
 
 public interface List<T> extends Iterable<T> {
+    /**
+     * Iterator of {@link List}, @see java.util.Iterator
+     * Call {@link List#iterator()} to get iterator
+     *
+     * @param <F>
+     */
     class Iterator<F> implements java.util.Iterator<F> {
         Node<F> next;
 
@@ -21,6 +27,11 @@ public interface List<T> extends Iterable<T> {
         }
     }
 
+    /**
+     * Node of {@link List}, must have item, front, next fields as public
+     *
+     * @param <F>
+     */
     class Node<F> {
         public F item;
         public Node<F> front;
@@ -36,10 +47,6 @@ public interface List<T> extends Iterable<T> {
             this.item = item;
             this.parent = parent;
             front = next = null;
-        }
-
-        public void remove() {
-            parent.removeNode(this);
         }
 
         public Node<F> makeNext(F item) {
@@ -65,23 +72,53 @@ public interface List<T> extends Iterable<T> {
         }
     }
 
-    boolean add(int index, T item);
+    /**
+     * Insert to last of list
+     *
+     * @param item to insert
+     * @return success
+     */
     boolean add(T item);
-    boolean addFirst(T item);
-    Node<T> addNode(T item);
 
-    T remove(int index);
+    /**
+     * @param item to delete
+     * @return success
+     */
     boolean remove(T item);
-    <N extends Node<T>> T removeNode(N node);
 
     T get(int index);
     T getFirst();
     T getLast();
+
+    /**
+     * Assert item is contained
+     *
+     * @param item to assert
+     * @return success
+     */
     boolean contains(T item);
+
+    /**
+     * Get index of item in list
+     *
+     * @param item to find
+     * @return index of item in list
+     */
     int indexOf(T item);
 
+    /**
+     * @return list size
+     */
     int size();
+
+    /**
+     * @return list as array
+     */
     Object[] toArray();
 
+    /**
+     * Iterator {@link Iterator}
+     * @return iterator of list from first
+     */
     Iterator iterator();
 }

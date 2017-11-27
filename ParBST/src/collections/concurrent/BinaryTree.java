@@ -5,7 +5,20 @@ import collections.interfaces.Tree;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
+/**
+ * An implementation of {@link Tree}, by fine-grained method.
+ * Concurrent additional implementation of {@link collections.LinkedList}.
+ *
+ * Fine-grained locking with insert, delete, search methods.
+ *
+ * See some test on BinaryTreeTest.
+ *
+ * @param <T>
+ */
 public class BinaryTree<T extends Comparable<? super T>> implements Tree<T> {
+    /**
+     * Node which lock enabled extends Tree.Node
+     */
     public class LockableNode extends Tree.Node<T> {
         ReentrantLock locker;
         LockableNode left;
@@ -33,6 +46,15 @@ public class BinaryTree<T extends Comparable<? super T>> implements Tree<T> {
         root = null;
     }
 
+    /**
+     * First of all, hold global lock(tree master lock) and test root is null.
+     * If root is null assign new node to root and release global lock.
+     * Else, iterate node from lock to target which is null switching left or right as compare.
+     * While iterating try to hold next node lock and release current node lock and switch current to next.
+     *
+     * @param data to insert
+     * @return success
+     */
     @Override
     public boolean insert(T data) {
         lock.lock();
@@ -67,11 +89,22 @@ public class BinaryTree<T extends Comparable<? super T>> implements Tree<T> {
         return true;
     }
 
+    /**
+     * First of all, hold global lock(tree master lock) and test root is null.
+     * If root is null release global lock and return false
+     * Else, iterate node from lock to target which is null switching left or right as compare.
+     * Unlike {@link #insert(Comparable)} is holding parent's node locking while tracing and delete.
+     * Because deletion of node can change value of node while other thread comparing parent.
+     *
+     * @param data to delete
+     * @return success
+     */
     @Override
     public boolean delete(T data) {
         lock.lock();
         if (root == null) {
             lock.unlock();
+            return false;
         } else {
             LockableNode cur = root;
             LockableNode par;
@@ -130,6 +163,12 @@ public class BinaryTree<T extends Comparable<? super T>> implements Tree<T> {
         return true;
     }
 
+    /**
+     * Find out replacement of node which to delete.
+     *
+     * @param sub root
+     * @return rightmost of left or leftmost of right if exists
+     */
     private LockableNode replacement(LockableNode sub) {
         LockableNode cur;
         LockableNode par = sub;
@@ -178,6 +217,13 @@ public class BinaryTree<T extends Comparable<? super T>> implements Tree<T> {
         return cur;
     }
 
+    /**
+     * Same as {@link #insert(Comparable)} or {@link #delete(Comparable)}.
+     * But there is no critical section, just reading.
+     *
+     * @param data to search
+     * @return success
+     */
     @Override
     public boolean search(T data) {
         lock.lock();

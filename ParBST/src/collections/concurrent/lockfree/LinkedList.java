@@ -4,11 +4,26 @@ import collections.interfaces.List;
 
 import java.util.concurrent.atomic.AtomicMarkableReference;
 
+/**
+ * An implementation of {@link List}, by lock-free.
+ * Concurrent additional implementation of {@link collections.LinkedList}.
+ *
+ * Lock-free implementation using pointer(hashCode here) of Node.
+ *
+ * See some test on concurrent.lockfree.LinkedListTest
+ *
+ * @param <T>
+ */
 public class LinkedList<T extends Comparable<? super T>> implements List<T> {
     private Node<T> head;
     private Node<T> last;
     private int counter;
 
+    /**
+     * Node extends from {@link List.Node}, next as {@link AtomicMarkableReference}
+     *
+     * @param <F>
+     */
     class Node<F extends Comparable<? super F>> extends List.Node<F> {
         int key;
         F item;
@@ -22,6 +37,11 @@ public class LinkedList<T extends Comparable<? super T>> implements List<T> {
         }
     }
 
+    /**
+     * Window is some atomic state of node and pre-node at some point of time.
+     *
+     * @param <F>
+     */
     class Window<F extends Comparable<? super F>> {
         Node<F> pre, cur;
         Window (Node<F> pre, Node<F> cur) {
@@ -30,7 +50,13 @@ public class LinkedList<T extends Comparable<? super T>> implements List<T> {
         }
     }
 
-    public Window<T> find(int key) {
+    /**
+     * Get window at some point of time.
+     *
+     * @param key hashCode of item
+     * @return window at now on
+     */
+    Window<T> find(int key) {
         Node<T> pre;
         Node<T> cur;
         Node<T> suc;
@@ -65,11 +91,12 @@ public class LinkedList<T extends Comparable<? super T>> implements List<T> {
         last.next.set(null, false);
         counter = 0;
     }
-    @Override
-    public boolean add(int index, T item) {
-        throw new UnsupportedOperationException("Not support in lockfree.LinkedList");
-    }
 
+    /**
+     *
+     * @param item to insert
+     * @return
+     */
     @Override
     public boolean add(T item) {
         int key = item.hashCode();
@@ -88,21 +115,11 @@ public class LinkedList<T extends Comparable<? super T>> implements List<T> {
         }
     }
 
-    @Override
-    public boolean addFirst(T item) {
-        throw new UnsupportedOperationException("Not support in lockfree.LinkedList");
-    }
-
-    @Override
-    public Node<T> addNode(T item) {
-        throw new UnsupportedOperationException("Not support in lockfree.LinkedList");
-    }
-
-    @Override
-    public T remove(int index) {
-        throw new UnsupportedOperationException("Not support in lockfree.LinkedList");
-    }
-
+    /**
+     *
+     * @param item to delete
+     * @return
+     */
     @Override
     public boolean remove(T item) {
         int key = item.hashCode();
@@ -123,11 +140,6 @@ public class LinkedList<T extends Comparable<? super T>> implements List<T> {
     }
 
     @Override
-    public <N extends List.Node<T>> T removeNode(N node) {
-        throw new UnsupportedOperationException("Not support in lockfree.LinkedList");
-    }
-
-    @Override
     public T get(int index) {
         throw new UnsupportedOperationException("Not support in lockfree.LinkedList");
     }
@@ -142,6 +154,11 @@ public class LinkedList<T extends Comparable<? super T>> implements List<T> {
         throw new UnsupportedOperationException("Not support in lockfree.LinkedList");
     }
 
+    /**
+     *
+     * @param item to assert
+     * @return
+     */
     @Override
     public boolean contains(T item) {
         boolean[] marked = {false};

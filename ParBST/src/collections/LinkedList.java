@@ -20,6 +20,10 @@ public class LinkedList<T> implements List<T> {
     }
 
     @Override
+    public boolean add(T item) {
+        return addNode(item) != null;
+    }
+
     public boolean add(int index, T item) {
         try {
             Node<T> node = getNode(index);
@@ -31,27 +35,15 @@ public class LinkedList<T> implements List<T> {
         }
     }
 
-    @Override
-    public boolean add(T item) {
-        return addNode(item) != null;
-    }
-
-    @Override
     public boolean addFirst(T item) {
         head.makeNext(item);
         counter += 1;
         return true;
     }
 
-    @Override
     public Node<T> addNode(T item) {
         counter += 1;
         return last.makeFront(item);
-    }
-
-    @Override
-    public T remove(int index) {
-        return removeNode(getNode(index));
     }
 
     @Override
@@ -65,7 +57,10 @@ public class LinkedList<T> implements List<T> {
         return false;
     }
 
-    @Override
+    public T remove(int index) {
+        return removeNode(getNode(index));
+    }
+
     public <N extends Node<T>> T removeNode(N node) {
         if (node.front != null) node.front.next = node.next;
         if (node.next != null) node.next.front = node.front;
