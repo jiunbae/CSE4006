@@ -167,11 +167,10 @@ public class ReentrantReadWriteOrderedLock implements ReadWriteLock {
                 waiter.remove(entries.remove(Thread.currentThread().getId()));
                 writing = false;
 
-                writer.signal();
+                writer.signalAll();
             } finally {
                 mutex.unlock();
             }
-
         }
 
         @Override
