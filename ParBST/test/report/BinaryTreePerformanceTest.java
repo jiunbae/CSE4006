@@ -1,6 +1,7 @@
 package report;
 
 import collections.concurrent.BinaryTree;
+import collections.concurrent.RWBinaryTree;
 import collections.interfaces.Tree;
 
 import org.junit.Before;
@@ -16,6 +17,7 @@ import java.util.stream.IntStream;
 @RunWith(Parameterized.class)
 public class BinaryTreePerformanceTest {
     private Tree<Integer> tree;
+    private Tree<Integer> rwTree;
     private concurrent.Pool pool;
 
     private int threadSize;
@@ -32,6 +34,8 @@ public class BinaryTreePerformanceTest {
     @Before
     public void makeInstance() throws Exception {
         tree = new BinaryTree<>();
+        rwTree = new RWBinaryTree<>();
+
         pool = new concurrent.Pool(threadSize);
     }
 
@@ -63,6 +67,7 @@ public class BinaryTreePerformanceTest {
             numbers.forEach((e) -> pool.push(() -> tree.insert(e)));
             pool.join();
         });
+        System.out.println(String.format("Inserting %d numbers takes %dms", numbers.size(), time));
     }
 
     @Test
@@ -79,6 +84,27 @@ public class BinaryTreePerformanceTest {
                 numbers.forEach((e) -> {
                     if (assertRatio(1, ratio, e)) pool.push(() -> tree.insert(e));
                     else pool.push(() -> tree.search(e));
+                });
+                pool.join();
+            });
+            System.out.println(result[i]);
+        }
+    }
+
+    @Test
+    public void testC() throws Exception {
+        long insertTime = executeWithTime(() -> {
+            numbers.forEach((e) -> pool.push(() -> rwTree.insert(e)));
+            pool.join();
+        });
+
+        long[] result = new long[this.searchRatio.length];
+        for (int i = 0; i < searchRatio.length; ++i) {
+            final int ratio = searchRatio[i];
+            result[i] = executeWithTime(() -> {
+                numbers.forEach((e) -> {
+                    if (assertRatio(1, ratio, e)) pool.push(() -> rwTree.insert(e));
+                    else pool.push(() -> rwTree.search(e));
                 });
                 pool.join();
             });
