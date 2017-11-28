@@ -77,7 +77,7 @@ public class LinkedListPerformanceTest {
         System.out.println(String.format("Inserting %d numbers takes %dms", numbers.size(), insertTime));
 
         Random random = new Random();
-        java.util.List<Integer> insertNumbers = IntStream.range(0, testSize).boxed().collect(Collectors.toList());
+        java.util.List<Integer> insertNumbers = IntStream.range(testSize, testSize * 2).boxed().collect(Collectors.toList());
         for (int i = 0; i < searchRatio.length; ++i) {
             final int ratio = searchRatio[i];
             int finalI = i;
