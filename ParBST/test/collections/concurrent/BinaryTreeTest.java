@@ -22,13 +22,13 @@ public class BinaryTreeTest {
     public static void init() throws Exception {
         numbers = IntStream.range(0, testSize).boxed().collect(Collectors.toList());
         Collections.shuffle(numbers);
-
-        pool = new concurrent.Pool(4);
     }
 
     @Before
     public void makeInstance() throws Exception {
         tree = new BinaryTree<>();
+
+        pool = new concurrent.Pool(4);
     }
 
     @Test

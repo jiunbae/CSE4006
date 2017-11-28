@@ -21,13 +21,13 @@ public class RWBinaryTreeTest {
     public static void init() throws Exception {
         numbers = IntStream.range(0, testSize).boxed().collect(Collectors.toList());
         Collections.shuffle(numbers);
-
-        pool = new concurrent.Pool(2);
     }
 
     @Before
     public void makeInstance() throws Exception {
-        tree = new RWBinaryTree<>();
+
+
+        pool = new concurrent.Pool(4);
     }
 
     @Test
