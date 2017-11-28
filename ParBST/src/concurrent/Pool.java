@@ -27,11 +27,13 @@ public class Pool {
     }
 
     public void join() {
-        while (Arrays.stream(workers).anyMatch((worker) -> worker.busy));
         terminate = true;
-        synchronized (queue) {
-            queue.notifyAll();
-        }
+        for (Worker worker : workers)
+            try {
+                worker.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
     }
 
     public final int size() {
@@ -43,23 +45,20 @@ public class Pool {
     }
 
     private class Worker extends Thread {
-        boolean busy = false;
-
         public void run() {
             Runnable task;
 
-            working: while (true) {
+            while (true) {
                 synchronized (queue) {
                     while (queue.isEmpty()) {
                         try {
-                            busy = false;
-                            if (terminate) break working;
+                            if (queue.isEmpty() && terminate)
+                                return;
                             queue.wait();
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
-                    busy = true;
                     task = queue.poll();
                 }
 
