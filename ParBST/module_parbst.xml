@@ -17,18 +17,15 @@
   
   <path id="parbst.module.production.classpath">
     <path refid="${module.jdk.classpath.parbst}"/>
-    <path refid="library.arquillian_junit:release.classpath"/>
   </path>
   
   <path id="parbst.runtime.production.module.classpath">
     <pathelement location="${parbst.output.dir}"/>
-    <path refid="library.arquillian_junit:release.classpath"/>
   </path>
   
   <path id="parbst.module.classpath">
     <path refid="${module.jdk.classpath.parbst}"/>
     <pathelement location="${parbst.output.dir}"/>
-    <path refid="library.arquillian_junit:release.classpath"/>
     <pathelement location="${idea.home}/lib/hamcrest-core-1.3.jar"/>
     <pathelement location="${idea.home}/lib/junit-4.12.jar"/>
   </path>
@@ -36,7 +33,6 @@
   <path id="parbst.runtime.module.classpath">
     <pathelement location="${parbst.testoutput.dir}"/>
     <pathelement location="${parbst.output.dir}"/>
-    <path refid="library.arquillian_junit:release.classpath"/>
     <pathelement location="${idea.home}/lib/hamcrest-core-1.3.jar"/>
     <pathelement location="${idea.home}/lib/junit-4.12.jar"/>
   </path>
@@ -65,15 +61,15 @@
   
   <target name="compile.module.parbst" depends="compile.module.parbst.production,compile.module.parbst.tests" description="Compile module ParBST"/>
   
-  <target name="compile.module.parbst.production" description="Compile module ParBST; production classes">
+  <target name="compile.module.parbst.production" depends="register.custom.compilers" description="Compile module ParBST; production classes">
     <mkdir dir="${parbst.output.dir}"/>
-    <javac destdir="${parbst.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.parbst}/javac">
+    <javac2 destdir="${parbst.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.parbst}/javac">
       <compilerarg line="${compiler.args.parbst}"/>
       <bootclasspath refid="parbst.module.bootclasspath"/>
       <classpath refid="parbst.module.production.classpath"/>
       <src refid="parbst.module.sourcepath"/>
       <patternset refid="excluded.from.compilation.parbst"/>
-    </javac>
+    </javac2>
     
     <copy todir="${parbst.output.dir}">
       <fileset dir="${module.parbst.basedir}/src">
@@ -83,15 +79,15 @@
     </copy>
   </target>
   
-  <target name="compile.module.parbst.tests" depends="compile.module.parbst.production" description="compile module ParBST; test classes" unless="skip.tests">
+  <target name="compile.module.parbst.tests" depends="register.custom.compilers,compile.module.parbst.production" description="compile module ParBST; test classes" unless="skip.tests">
     <mkdir dir="${parbst.testoutput.dir}"/>
-    <javac destdir="${parbst.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.parbst}/javac">
+    <javac2 destdir="${parbst.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.parbst}/javac">
       <compilerarg line="${compiler.args.parbst}"/>
       <bootclasspath refid="parbst.module.bootclasspath"/>
       <classpath refid="parbst.module.classpath"/>
       <src refid="parbst.module.test.sourcepath"/>
       <patternset refid="excluded.from.compilation.parbst"/>
-    </javac>
+    </javac2>
     
     <copy todir="${parbst.testoutput.dir}">
       <fileset dir="${module.parbst.basedir}/test">
