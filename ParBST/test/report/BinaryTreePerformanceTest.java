@@ -77,6 +77,8 @@ public class BinaryTreePerformanceTest {
             pool.join();
         });
 
+        System.out.println(String.format("Inserting %d numbers takes %dms", numbers.size(), insertTime));
+
         long[] result = new long[this.searchRatio.length];
         for (int i = 0; i < searchRatio.length; ++i) {
             final int ratio = searchRatio[i];
