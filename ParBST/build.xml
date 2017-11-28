@@ -37,7 +37,7 @@
             </fileset>
 
             <manifest>
-                <attribute name="Main-Class" value="collections.BinaryTree"/>
+                <attribute name="Main-Class" value="ParBSTMain"/>
             </manifest>
         </jar>
 
