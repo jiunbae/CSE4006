@@ -4,6 +4,7 @@ import collections.concurrent.BinaryTree;
 import collections.concurrent.RWBinaryTree;
 import collections.interfaces.Tree;
 
+import concurrent.Pool;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -22,7 +23,7 @@ public class BinaryTreePerformanceTest {
 
     private int threadSize;
     private int[] searchRatio;
-    private static final int testSize = 100000;
+    private static final int testSize = 1000000;
     private static List<Integer> numbers;
 
     @BeforeClass
@@ -76,20 +77,18 @@ public class BinaryTreePerformanceTest {
             numbers.forEach((e) -> pool.push(() -> tree.insert(e)));
             pool.join();
         });
-
         System.out.println(String.format("Inserting %d numbers takes %dms", numbers.size(), insertTime));
 
-        long[] result = new long[this.searchRatio.length];
-        for (int i = 0; i < searchRatio.length; ++i) {
-            final int ratio = searchRatio[i];
-            result[i] = executeWithTime(() -> {
+        for (final int ratio : searchRatio) {
+            long time = executeWithTime(() -> {
+                pool = new Pool(threadSize);
                 numbers.forEach((e) -> {
                     if (assertRatio(1, ratio, e)) pool.push(() -> tree.insert(e));
                     else pool.push(() -> tree.search(e));
                 });
                 pool.join();
             });
-            System.out.println(result[i]);
+            System.out.println(String.format("Insert and Search ratio 1:%d, %d numbers takes %dms", ratio, numbers.size(), time));
         }
     }
 
@@ -99,18 +98,18 @@ public class BinaryTreePerformanceTest {
             numbers.forEach((e) -> pool.push(() -> rwTree.insert(e)));
             pool.join();
         });
+        System.out.println(String.format("Inserting %d numbers takes %dms", numbers.size(), insertTime));
 
-        long[] result = new long[this.searchRatio.length];
-        for (int i = 0; i < searchRatio.length; ++i) {
-            final int ratio = searchRatio[i];
-            result[i] = executeWithTime(() -> {
+        for (final int ratio : searchRatio) {
+            long time = executeWithTime(() -> {
+                pool = new Pool(threadSize);
                 numbers.forEach((e) -> {
                     if (assertRatio(1, ratio, e)) pool.push(() -> rwTree.insert(e));
                     else pool.push(() -> rwTree.search(e));
                 });
                 pool.join();
             });
-            System.out.println(result[i]);
+            System.out.println(String.format("Insert and Search RWTree ratio 1:%d, %d numbers takes %dms", ratio, numbers.size(), time));
         }
     }
 }

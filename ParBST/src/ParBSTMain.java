@@ -28,8 +28,8 @@ public class ParBSTMain {
             System.out.println(String.format("Test Start with Thread %d", threadSize));
             try {
                 testA();
-                testB();
-                testC();
+                testB(threadSize);
+                testC(threadSize);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -56,7 +56,7 @@ public class ParBSTMain {
     }
 
 
-    static void testB() throws Exception {
+    static void testB(int threadSize) throws Exception {
         long insertTime = executeWithTime(() -> {
             numbers.forEach((e) -> pool.push(() -> tree.insert(e)));
             pool.join();
@@ -64,6 +64,7 @@ public class ParBSTMain {
         System.out.println(String.format("TestB: Insert and Search %d with ratio", numbers.size()));
         for (int ratio : searchRatio) {
             long time = executeWithTime(() -> {
+                pool = new concurrent.Pool(threadSize);
                 numbers.forEach((e) -> {
                     if (assertRatio(1, ratio, e)) pool.push(() -> tree.insert(e));
                     else pool.push(() -> tree.search(e));
@@ -74,7 +75,7 @@ public class ParBSTMain {
         }
     }
 
-    static void testC() throws Exception {
+    static void testC(int threadSize) throws Exception {
         long insertTime = executeWithTime(() -> {
             numbers.forEach((e) -> pool.push(() -> rwTree.insert(e)));
             pool.join();
@@ -82,6 +83,7 @@ public class ParBSTMain {
         System.out.println(String.format("TestC: Insert and Search RWLock %d with ratio", numbers.size()));
         for (int ratio : searchRatio) {
             long time = executeWithTime(() -> {
+                pool = new concurrent.Pool(threadSize);
                 numbers.forEach((e) -> {
                     if (assertRatio(1, ratio, e)) pool.push(() -> rwTree.insert(e));
                     else pool.push(() -> rwTree.search(e));
