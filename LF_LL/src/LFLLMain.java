@@ -25,7 +25,7 @@ public class LFLLMain {
             System.out.println(String.format("Test Start with Thread %d", threadSize));
             try {
                 testA();
-                testB();
+                testB(threadSize);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -52,7 +52,7 @@ public class LFLLMain {
     }
 
 
-    static void testB() throws Exception {
+    static void testB(int threadSize) throws Exception {
         long insertTime = executeWithTime(() -> {
             numbers.forEach((e) -> pool.push(() -> list.add(e)));
             pool.join();
@@ -60,6 +60,7 @@ public class LFLLMain {
         System.out.println(String.format("TestB: Insert and Search %d with ratio", numbers.size()));
         for (int ratio : searchRatio) {
             long time = executeWithTime(() -> {
+                pool = new concurrent.Pool(threadSize);
                 numbers.forEach((e) -> {
                     if (assertRatio(1, ratio, e)) pool.push(() -> list.add(e));
                     else pool.push(() -> list.contains(e));

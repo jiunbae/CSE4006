@@ -20,7 +20,7 @@ public class LinkedListPerformanceTest {
 
     private int threadSize;
     private int[] searchRatio;
-    private static final int testSize = 100000;
+    private static final int testSize = 10000;
     private static java.util.List<Integer> numbers;
 
     @BeforeClass
@@ -78,10 +78,12 @@ public class LinkedListPerformanceTest {
 
         Random random = new Random();
         java.util.List<Integer> insertNumbers = IntStream.range(testSize, testSize * 2).boxed().collect(Collectors.toList());
+
         for (int i = 0; i < searchRatio.length; ++i) {
             final int ratio = searchRatio[i];
             int finalI = i;
             long time = executeWithTime(() -> {
+                pool = new concurrent.Pool(threadSize);
                 numbers.forEach((e) -> {
                     if (assertRatio(1, ratio, random.nextInt(ratio + 1)))
                         pool.push(() -> list.add(insertNumbers.get(finalI)));
