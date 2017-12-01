@@ -14,7 +14,7 @@ public class LinkedListTest {
     private static collections.interfaces.List<Integer> list;
     private static concurrent.Pool pool;
 
-    private static final int testSize = 10000;
+    private static final int testSize = 100000;
     private static List<Integer> numbers;
 
     @BeforeClass
