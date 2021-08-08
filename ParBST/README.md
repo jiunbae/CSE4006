@@ -28,19 +28,19 @@
 
      성능 측정 결과는 results에 있습니다. 그래프는 모두 스레드 수를 x축으로 하며 수행 시간을 y축으로 합니다.
 
-     ![Insert 1M](https://github.com/MaybeS/CSE4006/blob/master/ParBST/results/Test%20Results%20Insert.png?raw=true)
+     ![Insert 1M](https://github.com/jiunbae/CSE4006/blob/master/ParBST/results/Test%20Results%20Insert.png?raw=true)
 
      *Figure 1 Insert 1M*
 
      Figure 1은 위에 설명된 두개의 클라이언트로 1 M의 Insert를 실행했을 때의 그래프 입니다. Window버전은 4 코어 CPU를 사용하여 4 개의 스레드 때 가장 좋은 효율을 보임을 알 수 있습니다. MAC버전은 2 코어 CPU를 가지고 있어 2 개 이상의 스레드에서 월등한 효율을 냄을 알 수 있습니다. 그 이상의 스레드에서 작동할 경우 성능이 오히려 저하됨을 알 수 있는데 이는 여럿의 스레드가 서로 Lock을 얻으려고 경쟁을 함으로 오히려 대기 시간이 늘어나서 그렇습니다.
 
-     ![Insert, Search](https://github.com/MaybeS/CSE4006/blob/master/ParBST/results/Test%20Results%20Search.png?raw=true)
+     ![Insert, Search](https://github.com/jiunbae/CSE4006/blob/master/ParBST/results/Test%20Results%20Search.png?raw=true)
 
      *Figure 2 Insert, Search*
 
      Figure 2에는 Insert와 Search를 각각 1, 4, 9로 하고 스레드의 수를 1, 2, 4, 8로 했을 때의 그래프 입니다. 이 실행은 Windows에서 진행되어 4 코어 CPU를 사용했기 때문에 4 스레드에서 가장 좋은 성능을 내고 있습니다. Insert만 했을 때와 마찬가지로 4 스레드보다 많아질 경우 오히려 성능이 저하되고 있는데 이는 다수의 스레드가 Lock을 얻기 위해 경쟁을 해서 그렇습니다. Search가 많아질수록 많은 스레드에서 더 좋은 성능을 내고 있지만 큰 차이는 없는 것을 알 수 있습니다. 이는 Search와 Insert가 비슷한 개수의 Lock을 잡고 수행하기 대문에 Insert나 Search에 큰 차이가 없음을 알 수 있습니다.
 
-     ![Insert, Search Read Write Lock](https://github.com/MaybeS/CSE4006/blob/master/ParBST/results/Test%20Results%20RWSearch.png?raw=true)
+     ![Insert, Search Read Write Lock](https://github.com/jiunbae/CSE4006/blob/master/ParBST/results/Test%20Results%20RWSearch.png?raw=true)
 
      *Figure 3 Insert, Search Read Write Lock*
 
@@ -73,13 +73,13 @@
 
 성능 측정 결과는 results에 있습니다. 그래프는 모두 스레드 수를 x축으로 하며 수행 시간을 y축으로 합니다. Linked List 특성상 add, delete Operation이 걸리는 시간은 BST에 비해 매우 길기 때문에 100 만의 작업을 모두 수행하지 않고 10 만의 작업을 수행한 시간을 측정하였습니다.
 
-​	![Insert 100K](https://github.com/MaybeS/CSE4006/blob/master/LF_LL/results/Test%20Results%20Insert.png?raw=true)
+​	![Insert 100K](https://github.com/jiunbae/CSE4006/blob/master/LF_LL/results/Test%20Results%20Insert.png?raw=true)
 
 ​	*Figure 4 Insert 100K*
 
 ​	Figure 4는 10 만의 Insert Operation을 수행한 시간을 위에 언급된 두개의 CPU에서 측정한 그래프 입니다. 		Part의 BST와 비교해서 CPU의 코어 개수와 같아지는 특정 지점에서 가장 좋은 성능을 내는 것이 아닌 스레드 수가 증가할수록 더 좋은 성능을 내고 있음을 확인할 수 있습니다. 추가적인 실험으로 16 스레드의 경우도 실험해보았지만 Figure 1과 같이 성능이 오히려 저하되는 경우는 나타나지 않았습니다. 이는 Lock Free로 구성된 자료구조의특성상 다수의 스레드가 실행해도 Lock에 의한 대기가 발생하지 않기 때문으로 보여집니다. 하지만 이는 일정 값으로 수렴하여 이론적인 성능 향상의 최대값이 존재하는 것처럼 보여집니다. 4 코어 CPU를 사용한 PC 실험에서는 8 스레드 이상일 경우 성능 향상이나 저하가 크지 않고, MAC도 16 이상의 스레드에서 그런 경향을 보이고 있습니다.
 
-​	![Insert, Search 100K](https://github.com/MaybeS/CSE4006/blob/master/LF_LL/results/Test%20Results%20Search.png?raw=true)
+​	![Insert, Search 100K](https://github.com/jiunbae/CSE4006/blob/master/LF_LL/results/Test%20Results%20Search.png?raw=true)
 
 ​	*Figure 5 Insert, Search 100K*
 
