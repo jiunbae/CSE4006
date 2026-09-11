@@ -1,0 +1,716 @@
+<title>CSE4006 소프트웨어공학</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F3F4F1; --surface:#FCFCFA; --surface-2:#EDEFEA;
+  --ink:#1A211C; --ink-soft:#5F6862; --ink-faint:#8A938C;
+  --rule:#DCE0DA; --rule-soft:#E7EAE4;
+  --accent:#2E5B4E; --accent-soft:#DDE9E3;
+  --mark:#A33027; --mark-soft:#F2DFDC;
+  --warn:#8E6416; --warn-soft:#F1E6CE;
+  --good:#41693C; --good-soft:#DFEBDC;
+  --shadow:0 1px 2px rgba(26,33,28,.05), 0 8px 24px -16px rgba(26,33,28,.22);
+  --f-display:"Newsreader",Georgia,"Times New Roman",serif;
+  --f-body:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#121512; --surface:#191D19; --surface-2:#20251F;
+    --ink:#E4E8E1; --ink-soft:#98A199; --ink-faint:#6E776F;
+    --rule:#2A2F29; --rule-soft:#232823;
+    --accent:#78BCA5; --accent-soft:#1D2C27;
+    --mark:#E08A7F; --mark-soft:#2E1F1D;
+    --warn:#CFA155; --warn-soft:#2B2418;
+    --good:#86B87E; --good-soft:#1E2A1D;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -16px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#121512; --surface:#191D19; --surface-2:#20251F;
+  --ink:#E4E8E1; --ink-soft:#98A199; --ink-faint:#6E776F;
+  --rule:#2A2F29; --rule-soft:#232823;
+  --accent:#78BCA5; --accent-soft:#1D2C27;
+  --mark:#E08A7F; --mark-soft:#2E1F1D;
+  --warn:#CFA155; --warn-soft:#2B2418;
+  --good:#86B87E; --good-soft:#1E2A1D;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -16px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{
+  background:var(--ground); color:var(--ink);
+  font-family:var(--f-body); font-size:16px; line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:900px; margin:0 auto; padding-inline:20px; padding-block:0 96px}
+.prose{max-width:70ch}
+h1,h2,h3,h4{font-family:var(--f-display); font-weight:600; text-wrap:balance; margin:0; line-height:1.2}
+p{margin:0}
+a{color:var(--accent); text-underline-offset:3px}
+strong{font-weight:600}
+code{font-family:var(--f-mono); font-size:.86em; background:var(--surface-2); padding:.1em .34em; border-radius:3px; word-break:break-word}
+.lbl{font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint)}
+
+/* ---------- masthead ---------- */
+.masthead{border-bottom:2px solid var(--ink); padding-block:40px 22px; margin-bottom:34px}
+.masthead .code{font-family:var(--f-mono); font-size:13px; font-weight:600; letter-spacing:.2em; color:var(--accent)}
+.masthead h1{font-size:clamp(32px,6vw,50px); margin-top:10px; letter-spacing:-.015em}
+.masthead .sub{font-family:var(--f-display); font-size:clamp(17px,2.6vw,21px); font-style:italic; color:var(--ink-soft); margin-top:12px; max-width:60ch}
+.headrow{display:flex; flex-wrap:wrap; gap:24px; align-items:flex-end; justify-content:space-between; margin-top:26px}
+.stats{display:flex; flex-wrap:wrap; gap:8px 30px}
+.stat .lbl{display:block}
+.stat b{font-family:var(--f-mono); font-size:15px; font-weight:500; font-variant-numeric:tabular-nums; display:block; margin-top:2px}
+.grade{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-width:104px; padding:10px 18px 12px; border:1.5px solid var(--mark); border-radius:2px;
+  color:var(--mark); background:var(--mark-soft); transform:rotate(-1.2deg);
+}
+.grade b{font-family:var(--f-display); font-size:38px; line-height:1; font-weight:600; letter-spacing:-.02em}
+.grade .lbl{color:var(--mark); opacity:.85; margin-top:5px}
+
+/* ---------- sections ---------- */
+section{margin-top:52px}
+section > h2{font-size:clamp(23px,3.6vw,29px); letter-spacing:-.01em; padding-bottom:10px; border-bottom:1px solid var(--rule)}
+section > h2 + p, section > h2 + .prose{margin-top:18px}
+.stack{display:flex; flex-direction:column; gap:16px; margin-top:22px}
+.stack-lg{display:flex; flex-direction:column; gap:26px; margin-top:24px}
+
+/* ---------- findings ---------- */
+.finding{
+  background:var(--surface); border:1px solid var(--rule); border-left:4px solid var(--ink-faint);
+  border-radius:3px; padding:20px 22px; box-shadow:var(--shadow);
+}
+.finding[data-sev="critical"]{border-left-color:var(--mark)}
+.finding[data-sev="major"]{border-left-color:var(--warn)}
+.finding[data-sev="minor"]{border-left-color:var(--ink-faint)}
+.finding > header{display:flex; flex-wrap:wrap; gap:6px 12px; align-items:baseline; margin-bottom:10px}
+.tier{font-family:var(--f-mono); font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; padding:2px 7px; border-radius:2px}
+[data-sev="critical"] .tier{color:var(--mark); background:var(--mark-soft)}
+[data-sev="major"] .tier{color:var(--warn); background:var(--warn-soft)}
+[data-sev="minor"] .tier{color:var(--ink-soft); background:var(--surface-2)}
+.finding h3{font-size:19px; flex:1 1 16ch}
+.finding p + p{margin-top:12px}
+.finding .prose{max-width:none}
+
+/* evidence strip: file:line + verbatim source */
+.ev{margin-top:14px; border:1px solid var(--rule-soft); border-radius:3px; overflow:hidden; background:var(--surface-2)}
+.ev-head{
+  font-family:var(--f-mono); font-size:11.5px; color:var(--ink-soft);
+  padding:6px 12px; border-bottom:1px solid var(--rule-soft); display:flex; gap:10px; flex-wrap:wrap;
+}
+.ev-head b{color:var(--ink); font-weight:600}
+.ev pre{margin:0; padding:12px 14px; overflow-x:auto; font-family:var(--f-mono); font-size:12.5px; line-height:1.6; color:var(--ink)}
+.ev pre .hl{color:var(--mark); font-weight:600}
+.ev pre .cm{color:var(--ink-faint)}
+
+/* standalone code block */
+pre.code{
+  margin:16px 0 0; padding:14px 16px; overflow-x:auto; background:var(--surface-2);
+  border:1px solid var(--rule-soft); border-radius:3px;
+  font-family:var(--f-mono); font-size:12.5px; line-height:1.6;
+}
+
+/* ---------- verdict table ---------- */
+.tbl-wrap{overflow-x:auto; margin-top:22px; border:1px solid var(--rule); border-radius:3px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:520px; font-size:14.5px}
+th,td{text-align:left; padding:11px 14px; border-bottom:1px solid var(--rule-soft); vertical-align:top}
+thead th{font-family:var(--f-mono); font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); background:var(--surface-2)}
+tbody tr:last-child td{border-bottom:0}
+td.num{font-family:var(--f-mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+td.g{font-family:var(--f-display); font-size:19px; font-weight:600; white-space:nowrap}
+.g-hi{color:var(--good)} .g-mid{color:var(--warn)} .g-lo{color:var(--mark)}
+
+/* ---------- callouts ---------- */
+.note{border-left:3px solid var(--accent); background:var(--accent-soft); padding:14px 18px; border-radius:0 3px 3px 0}
+.note.good{border-left-color:var(--good); background:var(--good-soft)}
+.note .lbl{color:inherit; opacity:.7; display:block; margin-bottom:6px}
+
+/* ---------- misc ---------- */
+ul,ol{margin:12px 0 0; padding-left:22px}
+li{margin-top:7px}
+li::marker{color:var(--ink-faint)}
+.rank{counter-reset:rk; list-style:none; padding-left:0}
+.rank li{counter-increment:rk; display:flex; gap:14px; margin-top:14px}
+.rank li::before{
+  content:counter(rk); font-family:var(--f-mono); font-size:12px; font-weight:600; color:var(--accent);
+  border:1px solid var(--accent); border-radius:50%; width:24px; height:24px; flex:0 0 24px;
+  display:flex; align-items:center; justify-content:center; margin-top:2px;
+}
+footer{margin-top:64px; padding-top:20px; border-top:1px solid var(--rule); color:var(--ink-faint); font-size:13px}
+footer p + p{margin-top:6px}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+@media (max-width:520px){
+  .grade{transform:none}
+  .masthead{padding-block:30px 18px}
+}
+</style>
+
+<div class="wrap">
+
+  <!-- ============ MASTHEAD ============ -->
+  <header class="masthead">
+    <div class="code">CSE4006 · HANYANG UNIV · 2017 FALL</div>
+    <h1>소프트웨어공학</h1>
+    <p class="sub">설계 감각은 확실히 있는 사람이 만든 레포다. 다만 "테스트를 모두 통과했으므로 올바르게 작동한다"는 보고서의 핵심 주장이, 애초에 실행될 수 없는 테스트 위에 서 있다.</p>
+    <div class="headrow">
+      <div class="stats">
+        <div class="stat"><span class="lbl">추적 파일</span><b>279</b></div>
+        <div class="stat"><span class="lbl">Java 파일</span><b>76</b></div>
+        <div class="stat"><span class="lbl">커밋</span><b>131</b></div>
+        <div class="stat"><span class="lbl">기간</span><b>2017.09–12</b></div>
+        <div class="stat"><span class="lbl">스택</span><b>Java 8 / Ant</b></div>
+      </div>
+      <div class="grade"><b>C</b><span class="lbl">종합</span></div>
+    </div>
+  </header>
+
+  <!-- ============ 총평 ============ -->
+  <section>
+    <h2>총평</h2>
+    <div class="prose stack">
+      <p>과제 4개다. <code>hw0</code>(소셜 네트워크 그래프), <code>VirutalWorld</code>(에이전트 시뮬레이션), <code>ParBST</code>(fine-grained / read-write lock BST), <code>LF_LL</code>(lock-free sorted linked list). 커밋 131개는 2017-09-11부터 2017-12-27까지 실제로 학기 내내 흩어져 있고, 마감 직전 폭주하는 형태라 진짜 개발 이력이 맞다. 대리 작성이나 일괄 업로드의 흔적은 없다.</p>
+      <p>가장 잘한 것은 <code>VirutalWorld</code>다. 명세는 Fox/Rabbit/Gnat별로 AI 클래스를 만들라고 했는데, 이 사람은 "기억 → 전파(propagation) → 인식(behold) → 평가(judge/evaluate) → 결정(decide)"이라는 추상 파이프라인을 <code>Actionable</code> 하나에 올리고 동물별로는 <code>judge</code>와 <code>getForgetfulness</code>만 오버라이드하게 만들었다. 학부 2학년 과제에서 보기 드문 추상화 수준이고, README에서 "AI 클래스는 명세 때문에 형식적으로 남겼다"고 스스로 밝힌 것도 정직하다.</p>
+      <p>가장 치명적인 것은 hw3다. 명세(<code>ParBST/hw3.pdf</code>)의 Part 2는 <em>lock-free sorted linked list</em>와 <em>lock-free (leaf-oriented) binary search tree</em> <strong>두 개</strong>를 요구하고, 제출 리포지토리도 <code>LF_LL</code>과 <code>LF_BST</code> 두 개를 지정한다. 레포에는 <code>LF_LL</code>만 있다. <code>git log --all --diff-filter=A</code>로 전 이력을 훑어도 lock-free BST 파일이 생성된 커밋은 단 하나도 없다. 그런데 제출 보고서(<code>ParBST/report.docx</code>)와 README는 Part 2의 제목 자체를 "Lock-Free Sorted Linked List를 구현한다"로 고쳐 적어, 요구사항의 절반이 사라진 사실이 문서상 드러나지 않게 해 두었다.</p>
+      <p>그리고 검증층이 무너져 있다. 보고서는 "작성된 클래스는 테스트를 모두 통과했으므로 올바르게 작동한다고 볼 수 있습니다"를 Part 1과 Part 2에서 각각 반복하는데, <code>RWBinaryTreeTest</code>는 테스트 대상 트리를 <strong>생성하지 않는다</strong>(아래 참조). 남아 있는 실행 로그도 정확성 테스트가 아니라 성능 테스트 결과뿐이고, 그 숫자들은 서로 12,000배 모순된다. 동시성 자료구조 과제에서 "테스트가 통과했다"는 문장은 보고서의 유일한 정확성 근거인데, 그 근거가 근거가 아니다.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>과제</th><th>주제</th><th>핵심 판정</th><th>등급</th></tr></thead>
+        <tbody>
+          <tr><td class="num">hw0</td><td>FriendGraph (소셜 네트워크)</td><td>명세가 요구한 유일한 알고리즘(<code>getDistance</code>)이 BFS 레벨이 아니라 pop 순번을 거리로 반환한다. 확장 경로는 전부 예외로 끝난다.</td><td class="g g-lo">D+</td></tr>
+          <tr><td class="num">hw2</td><td>VirutalWorld (에이전트 시뮬레이션)</td><td>설계는 이 레포에서 단연 최고. 다만 테스트가 0개이고, <code>clone()</code>이 자기 자신을 변형한다.</td><td class="g g-hi">B+</td></tr>
+          <tr><td class="num">hw3-1</td><td>ParBST (fine-grained / RW lock BST)</td><td>없는 키를 지우면 NPE와 함께 트리 전역 락이 영구히 잠긴다. RW 트리는 테스트 대상이 <code>null</code>이라 한 번도 검증된 적이 없다.</td><td class="g g-lo">D+</td></tr>
+          <tr><td class="num">hw3-2</td><td>LF_LL (lock-free linked list)</td><td>리스트 자체는 진짜 lock-free다. 그러나 과제의 나머지 절반(lock-free BST)이 없고, <code>size()</code>는 항상 0이다.</td><td class="g g-lo">D</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note" style="margin-top:22px">
+      <span class="lbl">검증 한계</span>
+      <p>이 머신에는 JDK가 설치되어 있지 않다. <code>/usr/bin/javac</code>는 존재하지만 실행하면 <code>The operation couldn't be completed. Unable to locate a Java Runtime.</code>을 낸다. 따라서 <strong>컴파일과 실행은 전부 미검증</strong>이며, 아래 모든 지적은 소스 정독과 레포에 커밋된 실행 로그 아티팩트에 근거한다. 실행이 필요한 주장에는 그 사실을 명시했다.</p>
+    </div>
+  </section>
+
+  <!-- ============ hw3 Part 2 / 범위 ============ -->
+  <section>
+    <h2>Homework 3 — 과제 범위</h2>
+    <p class="prose">명세 PDF는 폰트 서브셋 인코딩이라 그대로는 읽히지 않아, 스트림을 풀고 치환 매핑(<code>T→L, U→O, V→C, W→K, A→E, 2→R, 1→A, 3→T, P→I, Q→N, s→S, X→H, ?→D</code> …)을 복원해 영문 토큰만 디코드했다. 아래 인용은 그 결과다.</p>
+    <div class="stack-lg">
+
+      <article class="finding" data-sev="critical">
+        <header><span class="tier">치명적</span><h3>과제의 절반인 lock-free BST가 아예 없다</h3></header>
+        <div class="prose">
+          <p>hw3 Part 2는 lock-free 자료구조 <strong>두 개</strong>를 요구한다. 명세 본문은 "LOCK-FREE (SORTED) LINKED LIST를 구현하고, LOCK-FREE BINARY SEARCH TREE를 구현한다. LOCK-FREE BST는 LEAF-ORIENTED BST …"로 이어지고, 제출 지침은 리포지토리를 <code>LF_LL (LINKED-LIST)</code>과 <code>LF_BST (BST)</code> 두 개로 나누라고 지정한다.</p>
+          <p>레포 최상위에는 <code>LF_LL</code>만 있다. <code>ParBST/src/collections/concurrent/</code> 아래에도 <code>BinaryTree</code>(fine-grained), <code>RWBinaryTree</code>(read-write lock), <code>lockfree/LinkedList</code> 셋뿐이고 lock-free 트리는 없다. 전체 브랜치·전체 이력에 대해 파일 추가 이력을 뒤져도 <code>LF_BST</code>나 leaf-oriented 구현이 등장하는 커밋은 없다. 다른 브랜치에 숨어 있는 것도 아니다 — 브랜치는 <code>master</code> 하나뿐이다.</p>
+          <p>더 나쁜 것은 문서 처리 방식이다. 명세의 Part 2 제목은 "Lock-Free Data Structure를 구현한다"인데, 제출 보고서와 README는 Part 2를 아래처럼 <strong>다시 제목 붙여</strong> 놓았다. 빠뜨린 요구사항을 "이건 원래 과제가 아니었다"로 만드는 문장이다. 같은 절에서 linked list의 기반 클래스를 두고는 "과제의 요구사항이 아니기 때문에 생략합니다"라고 요구사항 범위를 정확히 인지하고 있음을 보여주면서도, 실제로 빠진 BST에 대해서는 한 줄도 없다.</p>
+        </div>
+        <div class="ev">
+          <div class="ev-head"><b>ParBST/README.md</b><span>:49</span></div>
+          <pre>## Part 2. <span class="hl">Lock-Free Sorted Linked List를 구현한다.</span>
+<span class="cm">// 명세 원문: "LOCK-FREE DATA STRUCTURE를 구현한다 ... LOCK-FREE (SORTED) LINKED LIST를</span>
+<span class="cm">//            구현하고, LOCK-FREE BINARY SEARCH TREE를 구현한다"</span>
+<span class="cm">// 제출 지침: REPOSITORY LF_LL (LINKED-LIST), LF_BST (BST)</span></pre>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="minor">
+        <header><span class="tier">경미</span><h3>제출 보고서 표제에 과목 코드와 학교명이 모두 틀려 있다</h3></header>
+        <div class="prose">
+          <p><code>ParBST/report.docx</code>와 <code>VirutalWorld/report.docx</code> 두 편 모두 두 번째 줄이 <code>CSE4065: 소프트웨어 공학 @ Hnaynag Univ.</code>이다. 과목 코드는 CSE4006이고 학교명은 Hanyang이다. 한 번의 오타가 두 학기 분량의 제출물에 그대로 복사된 것이라, 제출 전 훑어보지 않았다는 뜻이다.</p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ ParBST ============ -->
+  <section>
+    <h2>Homework 3 Part 1 — ParBST</h2>
+    <p class="prose">hand-over-hand locking을 쓴 <code>BinaryTree</code>와, 직접 만든 <code>ReentrantReadWriteOrderedLock</code> 위에 올린 <code>RWBinaryTree</code> 두 구현이다. 커스텀 락을 처음부터 쓴 것은 학부 과제로서 야심찬 선택이고, 보고서에서 "Read Lock을 Write Lock으로 바로 업그레이드하면 Dead Lock이 발생" 같은 실제 겪은 문제를 서술한 대목은 진짜 삽질의 흔적이다. 문제는 그 서술이 코드와 맞지 않는다는 점이다.</p>
+    <div class="stack-lg">
+
+      <article class="finding" data-sev="critical">
+        <header><span class="tier">치명적</span><h3>없는 키를 지우면 NPE가 나면서 트리 전역 락이 영구히 잠긴다</h3></header>
+        <div class="prose">
+          <p><code>delete()</code>는 루트의 자식으로 내려갈 때 null 검사를 하지 않는다. 트리에 <code>{5}</code>만 있는 상태에서 <code>delete(3)</code>을 호출하면 <code>cur = cur.left</code>가 <code>null</code>이 되고 바로 <code>cur.lock()</code>에서 <code>NullPointerException</code>이 난다.</p>
+          <p>더 심각한 것은 예외가 나는 <strong>위치</strong>다. 전역 락 <code>lock</code>은 104행에서 잡히고 118행에서야 풀리는데, NPE는 그 사이인 117행에서 터진다. <code>try/finally</code>가 없으므로 전역 락도, 111행에서 잡은 루트 노드 락도 영원히 잠긴 채로 남는다. 이후 이 트리에 대한 모든 <code>insert</code>/<code>delete</code>/<code>search</code>는 첫 줄의 <code>lock.lock()</code>에서 무한 대기한다. 자료구조 하나가 통째로 벽돌이 된다.</p>
+          <p>같은 클래스의 <code>insert()</code>(76행)와 <code>search()</code>(245행)는 <code>next == null</code>을 제대로 검사한다. 즉 저자가 이 패턴을 모르는 게 아니라, <code>delete</code>의 루트 직하 분기 한 군데에서만 빠뜨린 것이다.</p>
+        </div>
+        <div class="ev">
+          <div class="ev-head"><b>ParBST/src/collections/concurrent/BinaryTree.java</b><span>:104–118</span></div>
+          <pre>        lock.lock();                      <span class="cm">// ← 전역 락 획득</span>
+        ...
+            LockableNode cur = root;
+            LockableNode par;
+            cur.lock();
+
+            int compare = cur.data.compareTo(data);
+            if (compare != 0) {
+                par = cur;
+                cur = compare &gt; 0 ? cur.left : cur.right;
+                <span class="hl">cur.lock();</span>                   <span class="cm">// ← cur이 null이면 NPE. 전역 락은 잡힌 채로.</span>
+                lock.unlock();                <span class="cm">// ← 여기까지 도달하지 못한다</span></pre>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="critical">
+        <header><span class="tier">치명적</span><h3>탐색이 실패하면 노드 락을 반납하지 않고 빠져나온다</h3></header>
+        <div class="prose">
+          <p><code>delete()</code>의 탐색 루프는 대상을 못 찾고 리프를 지나칠 때 <code>return false</code>로 빠져나가는데, 그 시점에 <code>par</code>가 잡고 있는 락을 풀지 않는다.</p>
+          <p><code>{5, 3}</code>인 트리에서 <code>delete(4)</code>를 추적해 보면: 138행에서 노드 5의 락을 풀고 <code>par = cur</code>(노드 3, 이미 락 보유)로 옮긴 뒤, 143행에서 <code>cur = cur.right = null</code>이 되어 146행에서 <code>return false</code>한다. <strong>노드 3의 락은 영구히 잠긴 상태로 남는다.</strong> 이후 노드 3을 지나가야 하는 모든 연산이 그 자리에서 멈춘다.</p>
+          <p>이 두 결함은 합쳐서 하나의 결론을 만든다 — 이 BST는 "찾지 못하는 삭제"에 전혀 견디지 못한다. 그리고 <code>BinaryTreeTest</code>의 어떤 테스트도 존재하지 않는 키를 삭제하지 않는다. <code>delete</code> 계열 테스트는 전부 방금 넣은 키만 지운다(48–62행).</p>
+        </div>
+        <div class="ev">
+          <div class="ev-head"><b>ParBST/src/collections/concurrent/BinaryTree.java</b><span>:137–147</span></div>
+          <pre>                    } else {
+                        par.unlock();
+                        par = cur;                <span class="cm">// ← cur의 락이 par로 인계됨</span>
+
+                        compare = cur.data.compareTo(data);
+                        if (compare &gt; 0) cur = cur.left;
+                        else cur = cur.right;
+                    }
+
+                    <span class="hl">if (cur == null) return false;</span>   <span class="cm">// ← par.unlock() 없음. 락 누수.</span>
+                    else cur.lock();</pre>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="critical">
+        <header><span class="tier">치명적</span><h3><code>RWBinaryTreeTest</code>는 트리를 생성하지 않는다 — RW 트리는 한 번도 검증된 적이 없다</h3></header>
+        <div class="prose">
+          <p>보고서가 Part 1에서 가장 공들여 설명하는 것이 read-write lock 버전이다. 커스텀 <code>OrderedLock</code>을 새로 만든 이유, <code>downgrade()</code>를 추가한 이유, dead lock을 만난 경위까지 세 문단을 쓴다. 그런데 그 구현의 테스트 클래스는 <code>@Before</code>에서 <code>pool</code>만 만들고 <code>tree</code>는 만들지 않는다. 필드 선언(14행)만 있고 초기화가 없으므로 <code>tree</code>는 <code>null</code>이며, 6개 테스트 전부가 첫 줄에서 <code>NullPointerException</code>으로 죽는다.</p>
+          <p>삭제된 자리에 빈 줄 두 개가 그대로 남아 있는 것이 이 코드의 이력을 말해 준다 — 한때는 있었고, 지워졌고, 아무도 다시 돌려 보지 않았다.</p>
+          <p>그 상태에서 보고서는 이렇게 쓴다: <em>"작성된 BinaryTree 클래스는 테스트를 모두 통과했으므로 올바르게 작동한다고 볼 수 있습니다."</em> 문장은 <code>BinaryTree</code>만 지칭하지만, 문단 전체가 두 구현을 함께 설명하는 절 안에 있고 <code>RWBinaryTree</code>에 대해서는 검증 근거를 따로 대지 않는다. 레포에 남은 실행 로그(<code>ParBST/results/</code>)도 <code>BinaryTreePerformanceTest</code>의 성능 측정치뿐이고, 정확성 테스트 결과는 한 건도 보존되어 있지 않다.</p>
+        </div>
+        <div class="ev">
+          <div class="ev-head"><b>ParBST/test/collections/concurrent/RWBinaryTreeTest.java</b><span>:13–36</span></div>
+          <pre>public class RWBinaryTreeTest {
+    private static RWBinaryTree&lt;Integer&gt; tree;   <span class="cm">// ← 끝까지 대입되지 않는다</span>
+    private static concurrent.Pool pool;
+    ...
+    @Before
+    public void makeInstance() throws Exception {
+<span class="hl">                                                 // ← tree = new RWBinaryTree&lt;&gt;(); 가 있어야 할 자리</span>
+
+        pool = new concurrent.Pool(4);
+    }
+
+    @Test
+    public void insert() throws Exception {
+        numbers.forEach((e) -&gt; <span class="hl">tree.insert(e)</span>);   <span class="cm">// ← NPE</span></pre>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="critical">
+        <header><span class="tier">치명적</span><h3>read → write 락 승격이 원자적이지 않다 — 보고서가 해결했다고 주장하는 바로 그 문제</h3></header>
+        <div class="prose">
+          <p>보고서는 <code>downgrade()</code>를 만든 이유를 이렇게 설명한다: <em>"WriteLock.unlock(), ReadLock.lock()과 같이 구현하게 되면 Write Lock을 해제하고 Read Lock을 잡기 전에 다른 스레드가 Write Lock을 잡아버릴 위험이 있기에 … 하향시키는 기능을 추가하였습니다."</em> 내려오는 방향(write→read)은 실제로 <code>downgrade()</code>로 원자화했다.</p>
+          <p>그런데 <strong>올라가는 방향</strong>은 바로 그 방식 그대로다. <code>write()</code>는 read lock을 풀고 write lock을 잡는 두 문장으로 시작한다. 그 사이에 다른 스레드가 write lock을 잡고 노드를 바꿀 수 있다. 그래서 <code>insert</code>가 "<code>next == null</code>이니 여기에 새 노드를 달자"고 판단한 뒤 <code>write()</code> 안에서 다시 <code>c.left != null</code>을 재검사하게 되어 있는데(122행), 이는 저자도 이 틈을 알고 있었다는 뜻이다. 문제는 그 재검사가 실패했을 때다(아래).</p>
+          <p>그리고 그 사이에 놓인 두 줄이 더 있다. <code>catch (RuntimeException e) {}</code>는 임계 구역 안에서 발생한 모든 런타임 예외를 통째로 삼키고, 그 다음 88행의 <code>return true</code>가 <strong>실패한 쓰기를 성공으로 보고한다</strong>. 위의 <code>BinaryTree</code>에서 본 것과 똑같은 null 역참조가 여기서 일어나면, 호출자는 트리가 정상적으로 갱신되었다고 믿는다.</p>
+        </div>
+        <div class="ev">
+          <div class="ev-head"><b>ParBST/src/collections/concurrent/RWBinaryTree.java</b><span>:79–89</span></div>
+          <pre>        boolean write(final Function&lt;LockableNode, Boolean&gt; f) {
+            <span class="hl">readLock.unlock();</span>
+            <span class="hl">writeLock.lock();</span>            <span class="cm">// ← 이 두 줄 사이가 무방비. 승격이 원자적이지 않다.</span>
+            try {
+                return f.apply(this);
+            } <span class="hl">catch (RuntimeException e) {</span>  <span class="cm">// ← 전부 삼킴</span>
+            } finally {
+                writeLock.downgrade();
+            }
+            <span class="hl">return true;</span>                 <span class="cm">// ← 예외가 났어도 "성공"</span>
+        }</pre>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="major">
+        <header><span class="tier">중대</span><h3>문서화된 재시도 계약을 호출자가 지키지 않는다</h3></header>
+        <div class="prose">
+          <p><code>write()</code>의 javadoc은 이렇게 명시한다: <em>"@param f Return false raise dirty write when acquire write lock, must configure logic to re-try"</em>. 즉 <code>false</code>는 "경합이 났으니 다시 시도하라"는 신호다.</p>
+          <p><code>delete()</code>의 호출부는 재시도하지 않는다. 170–186행의 <code>par.write(...)</code>가 <code>false</code>를 반환하면 <code>if</code> 블록을 그냥 통과해 193–196행으로 떨어지는데, 이 시점의 <code>compare</code>는 0이므로 <code>compare &gt; 0</code>이 false가 되어 <strong>오른쪽 서브트리로 내려간다</strong>. 삭제하려던 키와 같은 값을 찾던 중이었으므로 오른쪽 서브트리에는 그 키가 있을 수 없고, 결국 루프는 리프까지 내려가 <code>false</code>를 반환한다. 경합이 한 번이라도 발생하면 삭제가 조용히 누락된다.</p>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="major">
+        <header><span class="tier">중대</span><h3><code>RWBinaryTree.delete()</code>가 없는 키에 대해 <code>true</code>를 반환한다</h3></header>
+        <div class="prose">
+          <p>루트의 해당 방향 자식이 없으면(즉 키가 트리에 없으면) 157–161행이 락을 풀고 <code>return true</code>한다. 트리가 아예 비어 있을 때도 146–148행에서 <code>lock.unlock()</code>만 하고 함수 끝의 <code>return true</code>(219행)로 떨어진다. 반면 더 깊은 곳에서 실패하면 199행에서 <code>false</code>를 반환한다. 같은 함수 안에서 "찾지 못함"의 반환값이 위치에 따라 달라진다.</p>
+          <p>대응하는 <code>BinaryTree</code>는 같은 자리에서 정확히 <code>false</code>를 반환한다(107행). 즉 이식 과정에서 뒤집힌 것이고, 테스트가 <code>delete</code>의 <strong>반환값을 한 번도 단언하지 않기 때문에</strong>(<code>assertFalse(tree.search(e))</code>만 본다) 잡히지 않았다.</p>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="major">
+        <header><span class="tier">중대</span><h3><code>inOrderHelper</code>는 어떤 노드의 락도 풀지 않는다</h3></header>
+        <div class="prose">
+          <p><code>BinaryTree.inOrderTraversal</code>(286–307행)은 루트를 잠그고 <code>inOrderHelper</code>를 호출한다. 헬퍼는 좌·우 자식을 잠그며 재귀하지만 <code>unlock()</code> 호출이 한 줄도 없다. 순회 한 번이면 <strong>트리 전체 노드가 잠긴 채로 남는다.</strong> <code>ReentrantLock</code>이라 같은 스레드는 재진입할 수 있지만, 다른 스레드는 이후 어떤 연산도 수행할 수 없다.</p>
+          <p>바로 위의 <code>preOrderHelper</code>(270–283행)는 <code>f.accept(node)</code> 직후 <code>node.unlock()</code>을 호출한다. 같은 파일에서 한쪽은 맞고 한쪽은 빠진 것이라, 복사 후 수정 과정의 누락으로 보인다. <code>RWBinaryTree</code>의 같은 메서드(340–353행)에는 <code>node.unlock()</code>이 들어 있다 — 즉 저자가 나중에 고쳤으나 <code>BinaryTree</code> 쪽에는 반영하지 않았다.</p>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="minor">
+        <header><span class="tier">경미</span><h3>"Reentrant"라는 이름과 달리 재진입이 불가능하다</h3></header>
+        <div class="prose">
+          <p><code>ReentrantReadWriteOrderedLock</code>은 hold count를 관리하지 않는다. <code>lock()</code>은 <code>entries.put(threadId, entry)</code>로 기존 항목을 덮어쓰고(62행) <code>waiter</code>에 항목을 하나 더 넣는다(63행). 같은 스레드가 write lock을 이미 쥔 상태에서 다시 <code>lock()</code>을 호출하면 <code>validate()</code>는 큐 머리의 항목이 자기 것과 <code>equals</code>이므로 true를 반환하고, 64–67행의 <code>do { while (!validate()) writer.await(); } while (writing);</code>는 <code>writing == true</code>이므로 <code>await()</code> 없이 <strong>CPU를 태우며 무한 반복</strong>한다. 자기 잠금이 아니라 자기 스핀이다.</p>
+          <p>또한 <code>downgrade()</code>(150–161행)는 <code>writing = false</code>로 바꾸면서 어떤 condition에도 signal을 보내지 않아, <code>writer.await()</code>에 잠든 스레드가 깨어날 기회를 잃는다.</p>
+        </div>
+      </article>
+
+      <div class="note good" style="margin-top:22px">
+        <span class="lbl">잘한 것</span>
+        <p>커밋 <code>"Fix RWBinaryTree hold read lock problem"</code>(2017-11-26), <code>"Fix signal all to waiting"</code>(2017-11-28), <code>"Fix search function invalid"</code>(2017-11-21)은 자기 코드의 동시성 버그를 스스로 찾아 고친 기록이다. 락 프로토콜 문제를 디버깅해 본 사람만 쓸 수 있는 커밋 메시지이고, 보고서에서 "Read Lock을 Write Lock으로 바로 업그레이드할 수 없기 때문에 Dead Lock이 발생"이라고 원인을 특정한 대목도 실제 관찰의 산물이다. 문제는 그 다음이다 — 발견은 했는데, 그 발견을 잡아 줄 테스트를 남기지 않았다.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ LF_LL ============ -->
+  <section>
+    <h2>Homework 3 Part 2 — LF_LL</h2>
+    <p class="prose">먼저 이름값에 대한 판정부터 하자면 — <strong>이건 진짜 lock-free다.</strong> <code>synchronized</code>나 <code>Lock</code>을 lock-free라고 부르는 흔한 사기가 아니다. <code>AtomicMarkableReference</code>로 노드의 next 포인터와 논리 삭제 마크를 한 워드에 묶었고(30행), <code>find()</code>는 마크된 노드를 지나가며 CAS로 물리적으로 잘라내고(71행), <code>add</code>/<code>remove</code>는 CAS 실패 시 <code>find</code>부터 재시도한다. Herlihy &amp; Shavit의 lock-free list를 제대로 이해하고 옮긴 코드다. 메모리 가시성도 <code>AtomicMarkableReference</code>가 책임지므로 별도 <code>volatile</code>이 필요 없고, 실제로 빠져 있지 않다. 문제는 옮기면서 달라진 세 군데다.</p>
+    <div class="stack-lg">
+
+      <article class="finding" data-sev="major">
+        <header><span class="tier">중대</span><h3><code>attemptMark</code>는 마크를 검사하지 않는다 — 두 스레드가 같은 노드 삭제에 동시에 "성공"한다</h3></header>
+        <div class="prose">
+          <p>원본 알고리즘의 논리 삭제는 <code>cur.next.compareAndSet(suc, suc, false, true)</code>다. 여기서 기대 마크 <code>false</code>가 핵심이다. 이미 마크된 노드에 대해서는 CAS가 실패하므로 <strong>정확히 한 스레드만</strong> 삭제에 성공하고 <code>true</code>를 반환한다.</p>
+          <p>이 코드는 <code>attemptMark(suc, true)</code>를 쓴다. <code>AtomicMarkableReference.attemptMark</code>는 레퍼런스만 비교하고 현재 마크는 보지 않는다. 따라서 스레드 A가 이미 마크한 노드에 대해 스레드 B가 <code>attemptMark</code>를 호출하면 (마크를 <code>true</code>에서 <code>true</code>로 쓰는 것이므로) 성공하고, B도 <code>return true</code>한다. <code>remove()</code>는 "내가 이 원소를 제거했다"를 뜻해야 하는데, 같은 원소에 대해 두 스레드가 모두 참을 받는다.</p>
+          <p>이것이 잡히지 않은 이유는 명확하다. <code>LinkedListTest</code>는 <code>remove</code>의 반환값을 한 번도 확인하지 않는다(44행: <code>pool.push(() -&gt; list.remove((Integer) e))</code>). 그리고 각 키를 정확히 한 번씩만 지운다.</p>
+        </div>
+        <div class="ev">
+          <div class="ev-head"><b>LF_LL/src/collections/concurrent/lockfree/LinkedList.java</b><span>:132–138</span></div>
+          <pre>            else {
+                Node&lt;T&gt; suc = cur.next.getReference();
+                snip = cur.next.<span class="hl">attemptMark(suc, true)</span>;   <span class="cm">// ← 현재 마크를 검사하지 않는다</span>
+                if (!snip) continue;                     <span class="cm">// 원본: compareAndSet(suc, suc, false, true)</span>
+                pre.next.compareAndSet(cur, suc, false, false);
+                return true;
+            }</pre>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="major">
+        <header><span class="tier">중대</span><h3><code>size()</code>는 무슨 일이 있어도 0을 반환한다</h3></header>
+        <div class="prose">
+          <p><code>counter</code> 필드는 파일 전체에서 세 번 등장한다 — 선언(20행), 생성자에서 <code>counter = 0</code>(92행), 그리고 <code>size()</code>의 <code>return counter</code>(181행). <code>add</code>와 <code>remove</code> 어디에서도 증감하지 않는다. 100만 개를 넣어도 <code>size()</code>는 0이다.</p>
+          <p>죽은 필드 자체보다 중요한 것은 이것이 <strong>테스트가 전혀 확인하지 않는 축</strong>이라는 점이다. 자료구조의 원소 개수는 동시 삽입/삭제의 정확성을 검증하는 가장 값싼 불변식인데, 구현도 검증도 없다. 마침 위의 <code>attemptMark</code> 결함이 정확히 이 축에서 드러났을 결함이다.</p>
+        </div>
+        <div class="ev">
+          <div class="ev-head"><b>LF_LL/src/collections/concurrent/lockfree/LinkedList.java</b><span>:20, 92, 179–182</span></div>
+          <pre>    private int counter;          <span class="cm">// :20  선언</span>
+        counter = 0;              <span class="cm">// :92  생성자. 이후 아무도 건드리지 않는다.</span>
+    @Override
+    public int size() {
+        <span class="hl">return counter;</span>            <span class="cm">// :181 항상 0</span>
+    }</pre>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="major">
+        <header><span class="tier">중대</span><h3>정렬 기준이 <code>compareTo</code>가 아니라 <code>hashCode</code>다</h3></header>
+        <div class="prose">
+          <p>클래스는 <code>T extends Comparable&lt;? super T&gt;</code>를 요구하지만 <code>compareTo</code>를 <strong>한 번도 호출하지 않는다.</strong> 키는 전부 <code>item.hashCode()</code>다(35, 102, 125, 165행). 보고서는 이를 "자바는 hashCode를 지원함으로 이를 통해 구현하였습니다"라고 포인터의 대체물로 설명하는데, 명세가 요구한 것은 <em>sorted</em> linked list다. <code>hashCode</code>는 <code>compareTo</code>와 일관될 의무가 없으므로 정렬 순서가 자료형의 순서와 무관해진다.</p>
+          <p>더불어 해시 충돌이 곧 정확성 오류가 된다. 서로 다른 두 원소의 <code>hashCode</code>가 같으면, 뒤에 넣은 원소는 "이미 존재함"으로 <code>false</code>를 받고(108행) 저장되지 않으며, 넣은 적 없는 원소에 대해 <code>contains</code>가 <code>true</code>를 반환한다.</p>
+          <p>테스트가 이를 못 잡는 이유도 명확하다 — 테스트 원소가 전부 <code>Integer</code>이고 <code>Integer.hashCode()</code>는 값 자신이라, 이 구현에서 유일하게 버그가 드러나지 않는 자료형이다.</p>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="major">
+        <header><span class="tier">중대</span><h3>성능 로그의 숫자가 자기 자신과 12,000배 모순되는데, 보고서는 그 숫자를 해석한다</h3></header>
+        <div class="prose">
+          <p>레포에 커밋된 <code>LF_LL/results/Test Results - LinkedListPerformanceTest_MAC.html</code>을 그대로 읽으면 이렇다. 같은 <code>testB</code> 안에서 10만 건 삽입이 <strong>303,515 ms</strong>(5분)인데, 그 직후 같은 10만 건의 insert+search 혼합이 <strong>25 ms / 14 ms / 111 ms</strong>다. 리스트에 이미 10만 노드가 있고 <code>contains</code>가 O(n) 선형 탐색인데 10만 번의 연산이 25 ms에 끝나는 것은 물리적으로 불가능하다. 두 구간 중 하나는 실제로 일하지 않았다는 뜻이다.</p>
+          <p>구조를 보면 원인 후보가 분명하다. 두 구간의 차이는 <code>pool</code>이 새로 만들어지느냐다(<code>LinkedListPerformanceTest.java:86</code>에서 재생성). 그 앞 구간(72–75행)은 <code>@Before</code>에서 만들어 <code>testA</code>와 공유하는 풀을 쓰는데, <code>concurrent.Pool.join()</code>은 워커 스레드를 종료시키므로 <strong>한 번 join한 풀은 재사용할 수 없다</strong>. 다만 이 머신에 JDK가 없어 실행으로 확정하지는 못했다 — <strong>추정</strong>으로 남긴다.</p>
+          <p>확정적으로 말할 수 있는 것은 이것이다. 보고서 Figure 4–5는 이 숫자들을 근거로 "Lock Free 구조체의 특성상 다수의 스레드가 실행해도 Lock에 의한 대기가 발생하지 않기 때문", "이론적인 성능 향상의 최대값이 존재하는 것처럼 보여집니다" 같은 결론을 이끌어낸다. 자기 측정치가 자기 측정치와 12,000배 어긋난다는 사실을 확인하는 문장은 한 줄도 없다. 측정 설계에서 가장 먼저 해야 할 일 — 숫자가 말이 되는지 보기 — 이 생략되었다.</p>
+        </div>
+        <div class="ev">
+          <div class="ev-head"><b>LF_LL/results/Test Results - LinkedListPerformanceTest_MAC.html</b><span>(추출 텍스트)</span></div>
+          <pre><span class="hl">Inserting 100000 numbers takes 303515ms</span>
+Insert and Search ratio 1:1, 100000 numbers takes <span class="hl">25ms</span>
+Insert and Search ratio 1:4, 100000 numbers takes <span class="hl">14ms</span>
+Insert and Search ratio 1:9, 100000 numbers takes <span class="hl">111ms</span>
+<span class="cm">// 같은 리스트, 같은 연산 수. contains는 O(n).</span></pre>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="minor">
+        <header><span class="tier">경미</span><h3><code>contains()</code>의 죽은 변수와 센티널 충돌</h3></header>
+        <div class="prose">
+          <p>169행의 <code>Node suc = cur.next.get(marked);</code>에서 <code>suc</code>는 대입만 되고 쓰이지 않는다(부수효과인 <code>marked</code> 채우기만 노린 것이지만, 원본 알고리즘에서는 이 호출이 루프 <em>밖</em>에 있다). 또한 raw type <code>Node</code>를 쓰고 있어 제네릭 경고가 난다.</p>
+          <p>더해서, <code>item.hashCode()</code>가 <code>Integer.MIN_VALUE</code>인 원소에 대해서는 <code>while (cur.key &lt; key)</code> 루프가 한 번도 돌지 않아 <code>cur</code>이 헤드 센티널인 채로 남고, 헤드의 키가 정확히 <code>Integer.MIN_VALUE</code>(87행)이므로 <strong>넣은 적 없는 원소에 <code>true</code>를 반환한다.</strong> 대칭적으로 <code>hashCode</code>가 <code>Integer.MAX_VALUE</code>인 원소는 테일 센티널(89행)과 충돌해 <code>add</code>가 언제나 <code>false</code>를 반환하며 절대 저장되지 않는다.</p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ Pool ============ -->
+  <section>
+    <h2>공통 인프라 — <code>concurrent.Pool</code></h2>
+    <p class="prose">두 hw3 모듈이 동일하게 쓰는 직접 구현 스레드 풀이다(<code>LF_LL</code>과 <code>ParBST</code>의 파일이 바이트 단위로 같다). hw3의 모든 동시성 테스트와 모든 성능 측정이 이 클래스 위에서 돌았으므로, 여기의 결함은 위의 모든 수치에 전가된다.</p>
+    <div class="stack-lg">
+
+      <article class="finding" data-sev="critical">
+        <header><span class="tier">치명적</span><h3>워커 스레드에서 터진 <code>AssertionError</code>는 아무 데도 도달하지 않는다 — 테스트가 실패할 수 없다</h3></header>
+        <div class="prose">
+          <p><code>LinkedListTest.contains</code>(53행)와 <code>BinaryTreeTest.searchParallel</code>(75행)은 JUnit 단언을 워커 스레드 안에서 실행한다. <code>assertTrue</code>가 실패하면 <code>AssertionError</code>가 던져지는데, 이것은 <code>Error</code>이지 <code>RuntimeException</code>이 아니다. <code>Pool.Worker.run()</code>의 catch 절은 <code>RuntimeException</code>만 잡으므로(67행) <code>AssertionError</code>는 그대로 <code>run()</code> 밖으로 나가 <strong>그 워커 스레드를 조용히 죽인다.</strong></p>
+          <p>JUnit은 테스트 메서드를 실행한 스레드에서만 예외를 수집한다. 따라서 실패는 메인 스레드에 전달되지 않고, <code>pool.join()</code>은 이미 죽은 스레드를 join하며 즉시 반환하고, <strong>테스트는 초록색으로 통과한다.</strong> 구현이 무엇을 반환하든 상관없이 통과한다.</p>
+          <p>보고서의 핵심 주장 — "테스트를 모두 통과했으므로 올바르게 작동한다고 볼 수 있습니다" — 가 이 지점에서 무너진다. 통과는 정확성의 증거가 아니라, 실패를 관측할 경로가 없다는 증거다.</p>
+        </div>
+        <div class="ev">
+          <div class="ev-head"><b>LF_LL/src/concurrent/Pool.java</b><span>:65–69</span> · <b>LF_LL/test/.../LinkedListTest.java</b><span>:53</span></div>
+          <pre><span class="cm">// Pool.java:65-69</span>
+                try {
+                    task.run();
+                } <span class="hl">catch (RuntimeException e) {</span>   <span class="cm">// ← AssertionError는 Error. 안 잡힌다.</span>
+                    e.printStackTrace();
+                }
+
+<span class="cm">// LinkedListTest.java:53</span>
+        numbers.forEach((e) -&gt; pool.push(() -&gt; <span class="hl">assertTrue(list.contains(e))</span>));</pre>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="major">
+        <header><span class="tier">중대</span><h3><code>join()</code>이 대기 중인 워커를 깨우지 않고, <code>terminate</code>는 <code>volatile</code>이 아니다</h3></header>
+        <div class="prose">
+          <p><code>join()</code>은 <code>terminate = true</code>로 바꾸고 곧바로 각 워커를 join한다. 그런데 <code>queue.notify()</code>나 <code>notifyAll()</code>을 호출하지 않는다. 큐가 빈 상태에서 <code>queue.wait()</code>에 들어가 있던 워커는 깨울 사람이 없으므로 <strong>영원히 잠들어 있고, <code>join()</code>은 영원히 반환하지 않는다.</strong> 종료 시점에 워커가 모두 바쁘게 돌고 있었다면 우연히 빠져나오지만, 이는 경쟁 조건에 기댄 것이다.</p>
+          <p>게다가 <code>terminate</code>는 <code>volatile</code>이 아니고(7행), 쓰기는 <code>join()</code>에서 <strong>동기화 블록 밖</strong>에서 일어난다(30행). 읽기(55행)만 <code>synchronized (queue)</code> 안에 있으므로 happens-before가 성립하지 않는다. 워커가 갱신을 영영 보지 못할 수 있다. 이 저자는 <code>LF_LL</code>에서는 <code>AtomicMarkableReference</code>로 가시성을 정확히 다루면서, 정작 그 코드를 구동하는 풀에서는 같은 문제를 놓쳤다.</p>
+          <p>덧붙여 <code>push()</code>는 <code>notify()</code>(한 스레드만 깨움)를 쓰고, 큐 자체는 이미 스레드 안전한 <code>LinkedBlockingQueue</code>다(9행). <code>take()</code>/<code>put()</code>을 쓰면 <code>synchronized</code>/<code>wait</code>/<code>notify</code>가 전부 필요 없어지고, 애초에 <code>java.util.concurrent.ExecutorService</code>로 대체 가능하다.</p>
+        </div>
+        <div class="ev">
+          <div class="ev-head"><b>LF_LL/src/concurrent/Pool.java</b><span>:7, 29–37, 52–57</span></div>
+          <pre>    private boolean terminate;              <span class="cm">// :7  volatile 아님</span>
+
+    public void join() {
+        <span class="hl">terminate = true;</span>                   <span class="cm">// :30 synchronized 밖에서 쓰기</span>
+        for (Worker worker : workers)
+            try { worker.join(); }          <span class="cm">// ← notifyAll() 없음</span>
+            ...
+
+                synchronized (queue) {      <span class="cm">// :52</span>
+                    while (queue.isEmpty()) {
+                        if (queue.isEmpty() &amp;&amp; terminate) return;
+                        <span class="hl">queue.wait();</span>           <span class="cm">// :57 깨워 줄 사람이 없다</span></pre>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ hw0 ============ -->
+  <section>
+    <h2>Homework 1 — hw0 (FriendGraph)</h2>
+    <p class="prose">명세(<code>hw0/hw0.pdf</code>)는 단 하나를 요구한다 — 무방향 그래프로 소셜 네트워크를 모델링하고 <strong>두 사람 사이의 거리를 계산하라</strong>. 인접 리스트를 <code>int[][]</code>로 직접 관리하고 BFS용 원형 큐까지 손수 만든, 몸풀기 과제치고는 성실한 구조다. 그런데 요구된 그 하나가 틀렸다.</p>
+    <div class="stack-lg">
+
+      <article class="finding" data-sev="critical">
+        <header><span class="tier">치명적</span><h3><code>getDistance</code>는 BFS 레벨이 아니라 "몇 번째로 꺼냈는가"를 거리로 반환한다</h3></header>
+        <div class="prose">
+          <p><code>last</code>는 큐에서 노드를 하나 꺼낼 때마다 1씩 증가한다(268행). 이것은 BFS의 <em>레벨</em>이 아니라 지금까지 방문 처리한 <em>노드 수</em>다. 두 값이 일치하는 것은 각 레벨에 노드가 정확히 하나뿐인 경우 — 즉 그래프가 일직선일 때뿐이다.</p>
+          <p>다섯 명으로 반례가 만들어진다. John, Merry, Mike, Steve, Kate를 넣고 <code>addFriendship</code>을 John–Mike, John–Merry, Merry–Steve, Mike–Kate 순으로 호출하면 John의 인접 리스트는 [Mike, Merry]가 된다. 추적하면: John을 꺼내며 Mike와 Merry를 거리 1로 기록(<code>last</code>→2), Mike를 꺼내며 Kate를 거리 2로 기록(<code>last</code>→3), Merry를 꺼내며 Steve를 <code>visit[Steve] = last = 3</code>으로 기록하고 반환한다. <strong>정답은 2인데 3을 반환한다.</strong> (JDK가 없어 실행 확인은 못 했고, 소스 추적으로 유도한 결과다.)</p>
+          <p>테스트가 이를 놓친 이유는 그래프가 너무 작기 때문이다. <code>FriendGraphTest.getDistance</code>(86–99행)는 네 명에 간선 세 개로, 한 레벨에 여러 노드가 있어도 목표가 두 번째 pop에서 바로 발견되는 배치라 우연히 2가 나온다. 반례를 만들려면 목표와 무관한 노드가 하나 더 pop되기만 하면 된다.</p>
+        </div>
+        <div class="ev">
+          <div class="ev-head"><b>hw0/src/cse4006/FriendGraph.java</b><span>:246, 256–269</span></div>
+          <pre>        int last = 1;                                    <span class="cm">// :246</span>
+        ...
+        while (!q.isEmpty()) {
+            int v = q.pop();
+
+            for (int k = 0; k &lt; network[v][0]; k++) {
+                if (visit[network[v][k + 1]] == -1) {
+                    visit[network[v][k + 1]] = <span class="hl">last</span>;      <span class="cm">// ← 거리가 아니라 pop 순번</span>
+                    if (network[v][k + 1] == j) {
+                        return visit[network[v][k + 1]];
+                    }
+                    q.add(network[v][k + 1]);
+                }
+            }
+            <span class="hl">last += 1;</span>                                <span class="cm">// :268 레벨이 아니라 pop마다 증가</span>
+        }</pre>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="critical">
+        <header><span class="tier">치명적</span><h3>17번째 사람을 추가하면 <code>ArrayIndexOutOfBoundsException</code>이 난다</h3></header>
+        <div class="prose">
+          <p><code>count</code>는 <code>-1</code>에서 시작하고 <code>persons</code>의 길이는 <code>size</code>(기본 16)다. 유효한 인덱스는 0–15인데, 확장 조건이 <code>count &gt; size</code>다. 17번째 호출에서 <code>count</code>가 16이 되면 <code>16 &gt; 16</code>은 거짓이므로 확장이 일어나지 않고 <code>persons[16]</code>에 그대로 쓴다. <code>&gt;=</code>여야 한다.</p>
+          <p>비교 연산자를 고쳐도 두 번째 결함이 남는다. <code>adjust()</code>의 확장 분기(71–79행)는 기존 행을 복사하기만 하고 <strong>새로 생긴 행을 초기화하지 않는다</strong>. <code>latest[16..31]</code>은 <code>null</code>이 되고, 그 인덱스의 사람에게 친구를 추가하는 순간 <code>connection[0]</code>에서 <code>NullPointerException</code>이 난다. 반면 최초 생성 분기(66–70행)는 <code>newConnection()</code>으로 각 행을 제대로 만든다 — 즉 초기화 코드를 알면서 확장 경로에만 빠뜨렸다.</p>
+        </div>
+        <div class="ev">
+          <div class="ev-head"><b>hw0/src/cse4006/FriendGraph.java</b><span>:177–187</span></div>
+          <pre>    public void addPerson(Person person) {
+        if (isPerson(person))
+            return;
+
+        count += 1;
+        <span class="hl">if (count &gt; size) {</span>        <span class="cm">// ← count == size일 때 확장되지 않는다</span>
+            expand();
+        }
+
+        <span class="hl">persons[count] = person;</span>  <span class="cm">// ← persons.length == size. count == size면 예외.</span>
+    }</pre>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="critical">
+        <header><span class="tier">치명적</span><h3>인접 리스트 "확장"이 배열을 오히려 줄인다</h3></header>
+        <div class="prose">
+          <p><code>newConnection(size, connection)</code>은 새 배열의 길이를 <code>Math.min(connection[0], size + 1)</code>로 잡는다. <code>connection[0]</code>은 <em>현재 저장된 원소 수</em>이지 용량이 아니다. 호출 조건(<code>isFullConnection</code>, 148행)이 바로 <code>connection[0] == connection.length - 1</code>이므로, 길이 17짜리 꽉 찬 배열에 대해 새 배열의 길이는 <code>min(16, 35) = 16</code> — <strong>원본보다 작다.</strong></p>
+          <p>그 다음 줄이 <code>array[0] = Math.min(connection[0], size) = 16</code>이고, 복사 루프가 <code>i &lt; 16</code> 범위에서 <code>array[i + 1]</code>에 쓰므로 마지막 반복이 길이 16 배열의 <code>array[16]</code>에 접근한다. <code>ArrayIndexOutOfBoundsException: 16</code>이다. 한 사람의 친구가 17명이 되는 순간 <code>addFriendship</code>이 터진다.</p>
+          <p><code>FriendGraphTest</code>의 어떤 케이스도 4명 이상의 그래프나 초기 용량을 넘는 친구 수를 만들지 않는다. 성장 경로 전체가 테스트되지 않은 채 남아 있고, 그 전체가 깨져 있다.</p>
+        </div>
+        <div class="ev">
+          <div class="ev-head"><b>hw0/src/cse4006/FriendGraph.java</b><span>:49–56</span> · 호출부 <span>:197–199</span></div>
+          <pre>    private final int[] newConnection(final int size, final int[] connection) {
+        int array[] = new int[<span class="hl">Math.min(connection[0], size + 1)</span>];  <span class="cm">// ← connection[0]은 용량이 아니라 개수</span>
+        array[0] = Math.min(connection[0], size);
+        for (int i = 0; i &lt; array[0]; i++) {
+            <span class="hl">array[i + 1] = connection[i + 1];</span>                    <span class="cm">// ← 마지막 반복에서 범위 초과</span>
+        }
+        return array;
+    }
+<span class="cm">// :197  if (isFullConnection(connection))                        // connection[0] == length-1</span>
+<span class="cm">// :198      connection = newConnection(connection.length * 2, connection);</span></pre>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="major">
+        <header><span class="tier">중대</span><h3>원형 큐가 pop마다 배열을 재할당해 BFS를 O(V²)로 만든다</h3></header>
+        <div class="prose">
+          <p><code>Queue.pop()</code>은 원소를 꺼내기 전에 <code>getSize() &lt; cap / 2</code>면 <code>adjust(cap / 2)</code>를 호출한다. <code>adjust</code>는 큐를 전부 비워 새 배열로 옮기는 O(n) 연산이다. BFS처럼 큐 길이가 용량의 절반 이하로 오래 머무는 사용 패턴에서는 <strong>거의 모든 pop이 전체 복사를 유발</strong>한다. 게다가 용량이 절반씩 줄어들다 다시 <code>add</code>에서 두 배로 늘어나는 진동까지 겹친다.</p>
+          <p>결과적으로 <code>getDistance</code>의 계산 복잡도가 O(V+E)가 아니라 O(V²)가 된다. 축소 조건은 보통 <code>size &lt; cap / 4</code> 정도로 잡아 amortized O(1)을 지킨다. <code>QueueTest.popTest</code>(51–62행)는 원소 5개로 정확히 이 축소 사슬을 타고도 통과하는데, 단언이 값만 보고 재할당 횟수는 보지 않기 때문이다.</p>
+        </div>
+        <div class="ev">
+          <div class="ev-head"><b>hw0/src/cse4006/utility/Queue.java</b><span>:71–82</span></div>
+          <pre>    public T pop() {
+        if (isEmpty()) {
+            return null;
+        } else {
+            <span class="hl">if (getSize() &lt; cap / 2) {</span>
+                <span class="hl">adjust(cap / 2);</span>      <span class="cm">// ← O(n) 전체 복사. pop마다 발생한다.</span>
+            }
+            Object element = elements[front];</pre>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="minor">
+        <header><span class="tier">경미</span><h3><code>equals</code>만 있고 <code>hashCode</code>가 없으며, 그나마 쓰이지 않는다</h3></header>
+        <div class="prose">
+          <p><code>Person.equals</code>(46–60행)는 <code>Class.isAssignableFrom</code>까지 챙긴 꼼꼼한 구현인데 <code>hashCode</code>를 함께 재정의하지 않았다. <code>equals</code>/<code>hashCode</code> 계약 위반이라 <code>HashSet</code>·<code>HashMap</code>에 넣는 순간 깨진다. 그리고 정작 <code>FriendGraph</code>는 <code>persons[i].getName().equals(name)</code>으로 문자열을 직접 비교하므로(109, 157행) 이 <code>equals</code>를 한 번도 호출하지 않는다.</p>
+          <p>덧붙여 <code>Queue</code>의 생성자는 <code>this.cap = cap + 1</code>인데 배열은 <code>new Object[cap]</code>으로 만들어(15–18행) <code>cap</code>과 <code>elements.length</code>가 1만큼 어긋난다. 첫 <code>adjust()</code> 이후로는 <code>cap = size</code>로 정정되므로 일관성이 그때부터 바뀐다. 실제 폭발까지 이어지지는 않지만, 불변식이 시점에 따라 달라지는 상태다.</p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ VirutalWorld ============ -->
+  <section>
+    <h2>Homework 2 — VirutalWorld</h2>
+    <p class="prose">Rabbit/Fox/Gnat과 각각의 AI를 구현하고, 자기가 상상한 동물을 하나 추가하라는 과제다. 이 레포에서 가장 잘 만들어진 모듈이고, 판정도 여기만 다르다. 다만 소프트웨어공학 과목의 과제로서 <strong>테스트 파일이 0개</strong>라는 점은 그대로 감점 사유다(<code>hw0</code>에는 4개, <code>hw3</code>에는 9개가 있다).</p>
+    <div class="stack-lg">
+
+      <article class="finding" data-sev="major">
+        <header><span class="tier">중대</span><h3><code>clone()</code>이 복제가 아니라 자기 자신을 변형한다</h3></header>
+        <div class="prose">
+          <p><code>Object.clone()</code>의 계약은 "이 객체의 복사본을 만든다"이지 "이 객체를 바꾼다"가 아니다. 그런데 이 구현은 첫 줄에서 <strong>수신자의 <code>energy</code>를 절반으로 깎는다</strong>(442행). 번식 시 부모가 에너지를 나눠 준다는 게임 규칙 자체는 타당하지만, 그 규칙을 <code>clone()</code>에 넣으면 "복제했을 뿐인데 원본이 변했다"가 된다. 이 메서드를 디버깅·로깅·상태 스냅샷 목적으로 호출하는 순간 시뮬레이션 상태가 조용히 망가진다. <code>breed()</code> 안에 놓았어야 할 로직이다.</p>
+          <p>또한 <code>super.clone()</code>은 얕은 복사라 <code>edible</code> <code>HashSet</code>(32행), <code>world</code>, <code>ai</code>, <code>nowLoc</code>, <code>preLoc</code>이 부모·자식 간에 참조로 공유된다. <code>memory</code>와 <code>info</code>는 <code>initialized = false</code>와 새 <code>Information</code>으로 분리 처리했으니, 나머지를 빠뜨린 것은 의도가 아니라 누락으로 보인다. 그리고 실패 시 <code>null</code>을 반환하는데(453행), 호출부인 <code>breed()</code>는 그 <code>null</code>을 <code>world.add()</code>에 그대로 넘기고 발생한 예외를 <code>catch (Exception)</code>으로 삼킨다(421–428행).</p>
+        </div>
+        <div class="ev">
+          <div class="ev-head"><b>VirutalWorld/src/faceduck/custom/Actionable.java</b><span>:440–454</span></div>
+          <pre>    @Override
+    public Actionable clone() {
+        <span class="hl">energy = (int) floor(energy / 2);</span>   <span class="cm">// ← this를 변형한다. clone의 계약 위반.</span>
+        final Actionable clone;
+        try {
+            clone = (Actionable) super.clone();  <span class="cm">// 얕은 복사: edible/world/ai 공유</span>
+            clone.energy = this.energy;
+            clone.initialized = false;
+            clone.info = new Information(info.getGeneration());
+            return clone;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        <span class="hl">return null;</span>                        <span class="cm">// ← 호출부에서 world.add(null, ...)</span>
+    }</pre>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="major">
+        <header><span class="tier">중대</span><h3>"skeleton을 변경하지 않았다"는 보고서 주장과 실제 커밋이 다르다</h3></header>
+        <div class="prose">
+          <p>보고서와 README는 첫 문단에서 <em>"주어진 skeleton의 구조를 변경하지 않으면서 높은 재사용성과 캡슐화를 위한 디자인과 설계를 진행해야 한다"</em>고 명세를 요약한다. 그러나 커밋 <code>43e2cbc "Fix implementation"</code>은 skeleton의 <code>Direction</code> enum에서 필드 타입과 <strong>공개 메서드의 반환 타입을 바꾼다</strong>(<code>Pair&lt;Integer, Integer&gt;</code> → <code>Location</code>). 커밋 <code>b4378ab "Fix"</code>는 skeleton의 <code>World</code> 인터페이스에 <code>getGeneration()</code>, <code>getCount()</code>, <code>getCount(Actors)</code> 세 메서드를 추가한다.</p>
+          <p>인터페이스에 메서드를 <em>추가</em>하는 것은 논쟁의 여지가 있지만, <code>getValue()</code>의 반환 타입을 바꾸는 것은 프레임워크 API의 파괴적 변경이다. 최소한 보고서에 "이런 이유로 skeleton의 이 부분을 수정했다"는 한 줄이 있어야 했다. 흥미롭게도 <code>World.java</code>에는 저자가 직접 붙인 <code>@Custom Improve</code> 태그가 있어 스스로 변경 사실을 표시해 두었는데, 그 표시가 보고서까지 올라오지는 않았다.</p>
+        </div>
+        <div class="ev">
+          <div class="ev-head"><b>VirutalWorld/src/faceduck/skeleton/util/Direction.java</b><span>:16–24 (커밋 43e2cbc)</span></div>
+          <pre>-    Pair&lt;Integer, Integer&gt; position;
++    <span class="hl">Location position;</span>
+
+-    public Pair&lt;Integer, Integer&gt; getValue() {
++    <span class="hl">public Location getValue() {</span>      <span class="cm">// ← skeleton 공개 API의 반환 타입 변경</span></pre>
+        </div>
+      </article>
+
+      <article class="finding" data-sev="minor">
+        <header><span class="tier">경미</span><h3>절대 실행될 수 없는 <code>finalize()</code></h3></header>
+        <div class="prose">
+          <p>"죽을 때 world에서 제거한다"는 주석과 함께 <code>finalize()</code>를 재정의했다(59–67행). 그런데 <code>finalize()</code>는 GC가 객체를 수거할 때 호출되고, world가 액터를 참조하고 있는 한 그 객체는 수거되지 않는다. 즉 <strong>주석이 말하는 상황에서는 절대 호출되지 않는다.</strong> 실제 제거는 <code>act()</code>가 에너지 소진 시 <code>world.remove(this)</code>를 직접 호출해 처리하고 있으므로(133행) 이 메서드는 순수한 죽은 코드다. 게다가 <code>finalize()</code>를 재정의하면 해당 클래스의 모든 인스턴스가 GC에서 2패스 처리를 받아 회수가 지연된다 — 수만 개 액터가 생멸하는 시뮬레이션에서는 실측 가능한 비용이다.</p>
+        </div>
+      </article>
+
+      <div class="note good" style="margin-top:22px">
+        <span class="lbl">잘한 것</span>
+        <p>명세는 <code>FoxAI</code>, <code>RabbitAI</code>, <code>GnatAI</code>를 각각 구현하라고 했다. 이 사람은 동물마다 AI 로직을 복붙하는 대신, "기억을 전파하고(<code>propagation</code>) 시야를 갱신하고(<code>behold</code>) 대상을 점수화하고(<code>judge</code>) 위치를 평가해(<code>evaluate</code>) 행동을 고르는(<code>decide</code>)" 파이프라인을 <code>Actionable</code>에 한 번만 구현하고, 동물별로는 <code>judge</code>와 <code>getForgetfulness</code>만 오버라이드하게 만들었다. <code>getCoolDown() / 2</code>만큼 <code>propagation</code>을 반복해 "쿨다운 동안 남들도 움직였을 것"을 모델링한 부분(<code>Actionable.java</code> 113행)은 과제가 요구하지 않은 수준의 설계다. 그 결과 AI 클래스들은 <code>actionable.decide()</code> 한 줄로 줄었고, 저자는 README에서 <em>"명세에 각 AI 클래스를 구현하라는 조건이 있었으므로 형식적으로 남겨 두었다"</em>고 그 사실을 감추지 않고 밝힌다. 코드에도 <code>// @TODO anti pattern, It's cleaner not to use AI</code>(119행)라고 스스로 적어 두었다. 이 레포 전체에서 문서와 코드가 가장 정확하게 일치하는 대목이다.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ 레포 위생 ============ -->
+  <section>
+    <h2>레포 위생</h2>
+    <div class="prose stack">
+      <p>추적 파일 279개 중 <strong><code>.class</code> 파일이 114개</strong>다. <code>VirutalWorld/classes/</code>와 <code>VirutalWorld/build/</code>에 같은 산출물이 두 벌, <code>hw0/build/</code>에 한 벌 더 들어 있다. 루트 <code>.gitignore</code>에 <code>*/classes</code>가 있는데도 남아 있는 이유는 무시 규칙을 추가하기 전에 이미 커밋했고 <code>git rm --cached</code>를 하지 않았기 때문이다. 커밋 로그에 <code>"Update classes"</code>가 두 번(2017-10-16, 2017-11-28) 등장하는 것으로 보아, 오히려 의도적으로 갱신해 왔다.</p>
+      <p>IDE 설정도 그대로다. <code>*.iml</code> 4개와 <code>.idea/</code> 11개가 추적되고, 그중 <code>ParBST/.idea/uiDesigner.xml</code>은 <code>.gitignore</code>가 명시적으로 제외하는 파일인데도 남아 있다. 더 나쁜 것은 <code>ParBST/parbst.properties</code>와 <code>hw0/build.properties</code>다. 전자에는 <code>C:\Users\maybe\.m2\repository</code>, <code>C:/Program Files/Java/jdk1.8.0_144</code> 같은 개인 머신의 절대 경로가 들어 있고, <code>hw0/build.xml</code>은 60행에서 <code>&lt;fileset dir="${jdk.home.1.8}"&gt;</code>로 그 경로를 실제로 참조한다. <strong>다른 머신에서는 빌드가 그 자리에서 실패한다.</strong></p>
+      <p>빌드 구성에 <strong>테스트 타깃이 없다.</strong> 세 <code>build.xml</code> 전부 <code>srcdir="${src}"</code>만 컴파일하고 <code>test/</code>는 건드리지 않으며, <code>junit</code> 태스크도 없고 JUnit jar도 레포에 없다(<code>.gitignore</code>가 <code>*.jar</code>를 통째로 무시한다). 테스트 9개는 IntelliJ 안에서만 실행 가능하고, 빌드 파이프라인에서는 존재하지 않는 것과 같다. 소프트웨어공학 과목에서 이 간극은 우연이 아니라 구조적 누락이다.</p>
+      <p>커밋 이력 자체는 진짜다. 131개가 2017-09-11부터 2017-12-27까지 학기 리듬대로 분포하고, 마감 직전인 11월 하순에 밀집한다(2021-08-09 커밋 하나는 GitHub 계정 rename). 다만 메시지 품질은 낮다 — <code>"Update tests"</code>, <code>"Update BST"</code>, <code>"Update gitignore"</code>(같은 날 3연속)처럼 무엇이 왜 바뀌었는지 알 수 없는 것이 대다수다. 그 사이에 <code>"Fix search function invalid"</code>, <code>"Fix RWBinaryTree hold read lock problem"</code>, <code>"Remove debug log"</code>처럼 정확한 메시지가 섞여 있어, 잘 쓸 줄 모르는 게 아니라 대부분의 경우 쓰지 않았다는 쪽에 가깝다. 저자 identity가 6개(<code>배지운</code>, <code>bae jiun, maybe</code>, <code>Bae jiun, Maybe</code>, <code>Jiun Bae</code>, <code>MaybeS</code>, <code>Maydev</code>)로 갈려 있는 것도 같은 성격의 방치다.</p>
+    </div>
+  </section>
+
+  <!-- ============ 반복 패턴 ============ -->
+  <section>
+    <h2>반복되는 패턴</h2>
+    <ol class="rank">
+      <li><div><strong>테스트가 실패할 수 없도록 설계되어 있다.</strong> 이것이 이 레포의 중심 문제다. <code>RWBinaryTreeTest</code>는 대상을 생성하지 않아 전부 NPE로 죽고, 워커 스레드 안의 <code>assertTrue</code>는 <code>Pool</code>이 <code>Error</code>를 잡지 않아 메인 스레드에 도달하지 않으며, <code>remove</code>/<code>delete</code>의 반환값은 어디서도 단언되지 않고, <code>size()</code>는 검사되지 않으며, <code>hw0</code>의 테스트는 초기 용량 안에서만 논다. 그 위에서 보고서는 "테스트를 모두 통과했으므로 올바르게 작동한다"를 두 번 반복한다. 테스트를 쓰지 않은 사람보다, 통과하는 테스트를 쓰고 그것을 증거로 삼은 사람이 더 위험하다.</div></li>
+      <li><div><strong>문서가 코드보다 앞서간다.</strong> Part 2의 제목을 바꿔 빠진 lock-free BST를 덮었고, "skeleton을 변경하지 않으면서"라고 쓴 뒤 skeleton의 공개 API를 바꿨으며, <code>write()</code>의 javadoc은 재시도 계약을 명시하는데 호출부는 재시도하지 않고, 보고서는 <code>complex</code> 테스트가 "100개의 작업"을 한다고 쓰는데 코드는 100만 번 돈다(<code>BinaryTreeTest.java:88</code>). 문서를 읽고 코드를 예상하면 매번 틀린다.</div></li>
+      <li><div><strong>행복 경로만 완성되어 있다.</strong> <code>BinaryTree.delete</code>는 있는 키만 지울 수 있고, <code>FriendGraph</code>는 16명 16친구까지만 살아 있으며, <code>lockfree.LinkedList</code>는 <code>Integer</code>로만 정확하다. 경계와 실패 경로에 손이 닿지 않았고, 정확히 그 경로들이 테스트되지 않은 경로와 일치한다.</div></li>
+      <li><div><strong>실패를 삼키는 습관.</strong> <code>catch (RuntimeException e) {}</code>(<code>RWBinaryTree.java:84</code>) 뒤에 <code>return true</code>, <code>catch (Exception e)</code> 뒤에 <code>return null</code>(<code>Actionable.java:450–453</code>), 주석 처리된 <code>e.printStackTrace()</code>(<code>Actionable.java:65</code>), <code>Pool</code>의 <code>catch (RuntimeException)</code>. 예외가 났다는 사실이 호출자에게 도달하는 경로가 코드 전반에서 차단되어 있다. 위의 1번 패턴과 같은 뿌리다.</div></li>
+      <li><div><strong>자기 숫자를 의심하지 않는다.</strong> 삽입 303,515 ms 직후 같은 작업이 25 ms로 찍혔는데, 보고서는 그것을 lock-free의 장점으로 해석한다. 벤치마크에서 가장 먼저 물어야 할 질문 — "이 숫자가 말이 되는가" — 이 한 번도 등장하지 않는다.</div></li>
+    </ol>
+  </section>
+
+  <!-- ============ 권고 ============ -->
+  <section>
+    <h2>지금 손본다면</h2>
+    <ol class="rank">
+      <li><div><strong><code>Pool</code>을 <code>ExecutorService</code>로 교체하고, 모든 단언을 메인 스레드로 끌어올린다.</strong> 작업을 <code>Callable</code>로 제출해 <code>Future.get()</code>으로 결과를 받으면 워커에서 터진 예외가 <code>ExecutionException</code>으로 전달된다. 한 시간짜리 작업이고, 이것만으로 현재 통과 중인 테스트 여러 개가 즉시 빨간색으로 바뀐다 — 그게 목적이다.</div></li>
+      <li><div><strong><code>RWBinaryTreeTest.makeInstance</code>에 <code>tree = new RWBinaryTree&lt;&gt;();</code> 한 줄을 넣는다.</strong> 한 줄이다. 이 레포에서 가장 값싼 수정이자, 보고서가 3문단에 걸쳐 설명한 구현이 실제로 동작하는지 처음으로 알게 되는 순간이다.</div></li>
+      <li><div><strong><code>BinaryTree.delete</code>의 락 획득을 <code>try/finally</code>로 감싸고 117행에 null 검사를 넣는다.</strong> 전역 락 영구 보유와 <code>par</code> 락 누수가 함께 사라진다. 이어서 "존재하지 않는 키 삭제" 테스트를 추가한다 — 지금 이 케이스는 세 구현 중 어느 것에도 없다.</div></li>
+      <li><div><strong><code>attemptMark</code>를 <code>compareAndSet(suc, suc, false, true)</code>로 바꾸고, <code>counter</code>를 <code>AtomicInteger</code>로 만들어 CAS 성공 지점에서만 증감한다.</strong> 그 다음 테스트에서 <code>add</code>/<code>remove</code>의 반환값 합계와 <code>size()</code>가 일치하는지 단언한다. 이 불변식 하나가 lock-free 리스트의 동시성 버그 대부분을 잡아낸다.</div></li>
+      <li><div><strong><code>getDistance</code>의 <code>last</code>를 레벨 카운터로 바꾼다.</strong> <code>visit[v] + 1</code>을 이웃에 기록하는 표준 형태면 충분하고, 별도 카운터가 필요 없어진다. 함께 <code>addPerson</code>의 <code>&gt;</code>를 <code>&gt;=</code>로, <code>adjust</code>의 확장 분기에 새 행 초기화를, <code>newConnection(size, connection)</code>의 길이 계산을 <code>size + 1</code>로 고친다.</div></li>
+      <li><div><strong><code>build.xml</code>에 <code>junit</code> 타깃을 추가하고 <code>.class</code> 114개와 IDE 설정을 <code>git rm --cached</code>한다.</strong> 절대 경로가 박힌 <code>*.properties</code>도 함께 제거하면 다른 머신에서 처음으로 빌드가 성립한다. 소프트웨어공학 과목에서 이건 부수적 정리가 아니라 과제의 일부다.</div></li>
+    </ol>
+  </section>
+
+  <footer>
+    <p>평가 대상: <code>github.com/jiunbae/CSE4006</code> · 브랜치 <code>master</code> 1개 · 커밋 131개 (2017-09-11 ~ 2017-12-27, 이후 2021-08-09 계정 rename 커밋 1개) · 추적 파일 279개 (Java 76, <code>.class</code> 114)</p>
+    <p>검증 방식: <code>hw0</code>·<code>LF_LL</code>·<code>ParBST</code>의 전체 소스 정독, <code>VirutalWorld</code>는 <code>Actionable</code>·AI·skeleton 변경분 정독. 과제 명세 <code>hw0.pdf</code>·<code>hw2.pdf</code>·<code>hw3.pdf</code> 텍스트 추출(hw3는 폰트 서브셋 인코딩을 치환 복원), 제출 보고서 <code>report.docx</code> 2편 전문 확인, 레포에 커밋된 성능 테스트 결과 HTML·CSV 대조, <code>git log --all</code> 및 커밋 단위 diff 확인.</p>
+    <p><strong>미검증:</strong> 이 머신에 JDK가 없어(<code>javac -version</code> → <code>Unable to locate a Java Runtime.</code>) 컴파일과 실행을 전혀 하지 못했다. 위의 모든 지적은 소스 추적과 커밋된 실행 로그에 근거하며, 런타임 확인이 필요한 주장(성능 로그 모순의 정확한 원인)은 본문에 "추정"으로 표시했다. 인용된 행 번호와 코드는 모두 실제 파일 내용이다.</p>
+  </footer>
+
+</div>
